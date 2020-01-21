@@ -15,7 +15,6 @@ class Customer: public Locatable {
             this->maxServiceDuration = maxServiceDuration;
             this->demand = demand;
         }
-
 }; 
 
 #endif

@@ -12,9 +12,12 @@ class Route {
     private:
         vector<Locatable> locations;
         float totalDistance;
-        
+
         void updateTotalDistance();
     public: 
+        Route();
+        Route(Route route, Customer customer);
+
         boolean isValid();
         float getTotalDistance();
 

@@ -8,8 +8,7 @@ using namespace std;
 
 int main() {
     MDVRP problem("../../testing-data/p01");
-    MDVRPGeneticAlgorithm ga(problem);
-
-    cin.get();    
+    MDVRPGeneticAlgorithm ga(&problem); 
+    cout << "\nDone";
     return 1;
 }

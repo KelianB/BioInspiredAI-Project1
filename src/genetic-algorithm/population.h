@@ -9,8 +9,11 @@ class Population {
         std::vector<Individual> individuals;
     
     public:
+        Population();
+
         Individual getFittestIndividual();
-        insertIndividuals(std::vector<Individual> inds);
+        void addIndividual(Individual ind) {}
+        void insertIndividuals(std::vector<Individual> inds);
 };
 
 #endif

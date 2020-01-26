@@ -14,7 +14,7 @@ class Locatable {
         void setY(float y) {this->y = y;}
         void setPosition(float x, float y) {this->setX(x); this->setY(y);}
 
-        float distanceTo(Locatable* l);
+        float distanceTo(Locatable l);
 }; 
 
 #endif

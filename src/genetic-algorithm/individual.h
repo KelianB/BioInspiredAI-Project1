@@ -4,13 +4,17 @@
 #include <vector>
 #include "route.h"
 
+using namespace std;
+
 class Individual {
     private:
-        std::vector<Route> routes;
+        vector<Route> routes;
     
     public:
+        Individual(vector<Route> routes) {};
+
         float fitness();
-        mutate();
+        void mutate();
         Individual makeOffspring(Individual ind);
 };
 

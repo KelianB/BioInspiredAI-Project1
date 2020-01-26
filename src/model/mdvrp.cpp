@@ -14,8 +14,12 @@ vector<int> lineToNumbers(string line) {
     stringstream ss(line);
     string rawIn;
     vector<int> numbers;
-    while(getline(ss, rawIn, ' '))
-        numbers.push_back(std::atoi(rawIn.c_str()));
+    while(getline(ss, rawIn, ' ')) {
+        // Discard empty strings, which occur because numbers are padded with spaces (e.g. 3 is ' 3')
+        if(rawIn.length() > 0) {
+            numbers.push_back(std::atoi(rawIn.c_str()));
+        }
+    } 
 
     return numbers;
 }
@@ -43,15 +47,15 @@ MDVRP::MDVRP(const char filePath[]) {
             }
             // Read depot definition
             else if(lineIndex <= numDepots) {
-                depots.push_back(Depot(numbers[0], numbers[1]));  
+                depots.push_back(Depot(depots.size(), numbers[0], numbers[1]));  
             }
             // Read customer definition
             else if(lineIndex <= numDepots + numCustomers) {
                 customers.push_back(Customer(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4]));   
             }
             // Read depot positions
-            else if(lineIndex <= numDepots + numCustomers + numDepots) {
-                depots[lineIndex - numDepots - numCustomers].setPosition(numbers[1], numbers[2]);
+            else if(lineIndex < numDepots + numCustomers + numDepots) {
+                depots.at(lineIndex - numDepots - numCustomers).setPosition(numbers[1], numbers[2]);
             }
             else {
                 cout << "Too many lines in input problem data.";
@@ -59,6 +63,7 @@ MDVRP::MDVRP(const char filePath[]) {
 
             lineIndex++;
         }
+        
         fileStream.close();
 
         cout << "Successfully parsed input data.\n";
@@ -68,4 +73,19 @@ MDVRP::MDVRP(const char filePath[]) {
     else {
         cout << "Couldn't read file " << filePath << ".";
     }
+}
+
+Customer MDVRP::getClosestCustomer(Locatable locatable, vector<Customer> customers) {
+    Customer *closest;
+    float smallestDistance = 10000000;
+
+    for(int i = 0; i < customers.size(); i++) {
+        Customer c = customers[i];
+        float distance = locatable.distanceTo(c); 
+        if(distance < smallestDistance) {
+            smallestDistance = distance;
+            closest = &c;
+        }
+    }
+    return *closest;
 }

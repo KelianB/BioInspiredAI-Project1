@@ -5,16 +5,18 @@
 
 class Depot: public Locatable { 
     private:
-        unsigned int maxRouteDuration;
-        unsigned int maxVehicleLoad;
+        int maxRouteDuration;
+        int maxVehicleLoad;
+        int number;
     public: 
-        Depot(unsigned int maxRouteDuration, unsigned int maxVehicleLoad)
+        Depot(int number, int maxRouteDuration, int maxVehicleLoad)
         : Locatable(0, 0) {
             this->maxRouteDuration = maxRouteDuration;
             this->maxVehicleLoad = maxVehicleLoad;
+            this->number = number;
         }
 
-
+        int getNumber() {return number;}
 }; 
 
 #endif

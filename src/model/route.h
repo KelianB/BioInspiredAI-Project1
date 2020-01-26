@@ -4,6 +4,7 @@
 #include <vector>
 #include "locatable.h"
 #include "customer.h"
+#include "depot.h"
 
 using namespace std;
 
@@ -14,9 +15,10 @@ class Route {
 
         void updateTotalDistance();
     public: 
-        Route();
-        Route(Route route, Customer customer);
+        Route(Depot depot) {};
 
+        bool canAddCustomer(Customer customer) {return true;};
+        void addCustomer(Customer customer) {};
         bool isValid();
         float getTotalDistance();
 }; 

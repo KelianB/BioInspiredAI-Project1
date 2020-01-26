@@ -1,7 +1,7 @@
-#include "locatable.h"
-
 #ifndef DEPOT_H
 #define DEPOT_H
+
+#include "locatable.h"
 
 class Depot: public Locatable { 
     private:

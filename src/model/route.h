@@ -5,8 +5,7 @@
 #include "locatable.h"
 #include "customer.h"
 
-
-use namespace std;
+using namespace std;
 
 class Route { 
     private:
@@ -18,9 +17,8 @@ class Route {
         Route();
         Route(Route route, Customer customer);
 
-        boolean isValid();
+        bool isValid();
         float getTotalDistance();
-
 }; 
 
 #endif

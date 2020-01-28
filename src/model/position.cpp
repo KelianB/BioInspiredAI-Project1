@@ -1,12 +1,13 @@
 #include "locatable.h"
+#include "position.h"
 #include <cmath>
 #include <iostream>
 
-Locatable::Locatable(int x, int y) {
-    this->x = x;
-    this->y = y;
+
+Position::Position(int x, int y) {
+    this->set(x, y);
 }
 
-float Locatable::distanceTo(Locatable l) {
+float Position::distanceTo(Position l) {
     return sqrt((pow((getX() - l.getX()), 2) + pow((getY() - l.getY()), 2)));
 }   

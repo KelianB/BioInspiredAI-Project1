@@ -3,6 +3,7 @@
 
 #include "customer.h"
 #include "depot.h"
+#include "position.h"
 #include <vector>
 #include <string>
 
@@ -18,7 +19,7 @@ class MDVRP {
     public: 
         MDVRP(const char filePath[]);
 
-        Customer getClosestCustomer(Locatable locatable, vector<Customer> customers);
+        Customer getClosestCustomer(Position pos, vector<Customer> customers);
         
         vector<Customer> getCustomers() {return customers;}
         vector<Depot> getDepots() {return depots;}

@@ -7,6 +7,9 @@ Route::Route(Depot* depot) {
     this->totalDistanceRequireUpdate = true;
 }
 
+bool Route::canAddCustomer(Customer c) {
+    
+}
 
 void Route::addCustomer(Customer c) {
     this->customers.push_back(c);

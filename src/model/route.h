@@ -22,7 +22,7 @@ class Route {
 
         Depot* getDepot() {return depot;}
 
-        bool canAddCustomer(Customer customer) {return true;};
+        bool canAddCustomer(Customer customer);
         void addCustomer(Customer customer);
         bool isValid();
         float getTotalDistance();

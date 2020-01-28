@@ -6,10 +6,10 @@
 
 class MDVRPGeneticAlgorithm {
     private:
-        MDVRP* problem;
+        MDVRP& problem;
         Population population;    
     public:
-        MDVRPGeneticAlgorithm(MDVRP* problem);
+        MDVRPGeneticAlgorithm(MDVRP& pb);
 
         void buildInitialPopulation();
 };

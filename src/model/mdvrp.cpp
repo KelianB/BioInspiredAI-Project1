@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <list>
 
 using namespace std;
 
@@ -28,6 +29,9 @@ MDVRP::MDVRP(const char filePath[]) {
     ifstream fileStream;
     fileStream.open(filePath);
     
+    depots = *new vector<Depot>();
+    customers = *new vector<Customer>();
+
     if(fileStream.is_open()) {
         std::cout << "Parsing file " << filePath << "...\n";
 
@@ -56,7 +60,7 @@ MDVRP::MDVRP(const char filePath[]) {
             // Read depot positions
             else if(lineIndex <= numDepots + numCustomers + numDepots) {
                 cout << "\n" << lineIndex - numDepots - numCustomers - 1 << "->" << numbers[1];
-                depots[lineIndex - numDepots - numCustomers - 1].getPos().set(numbers[1], numbers[2]);
+                depots[lineIndex - numDepots - numCustomers - 1].setPosition(numbers[1], numbers[2]);
             }
             else {
                 cout << "Too many lines in input problem data.";
@@ -67,7 +71,7 @@ MDVRP::MDVRP(const char filePath[]) {
         
         fileStream.close();
 
-        cout << "Successfully parsed input data.\n";
+        cout << "\nSuccessfully parsed input data.\n";
         cout << "Number of customers: " << this->customers.size() << "\n";
         cout << "Number of depots: " << this->depots.size() << "\n";
     }
@@ -76,17 +80,16 @@ MDVRP::MDVRP(const char filePath[]) {
     }
 }
 
-Customer MDVRP::getClosestCustomer(Position pos, vector<Customer> customers) {
-    Customer *closest;
+Customer MDVRP::getClosestCustomer(Locatable locatable, vector<Customer> customers) {
     float smallestDistance = 999999999;
+    int minIndex;
 
     for(int i = 0; i < customers.size(); i++) {
-        Customer c = customers[i];
-        float distance = pos.distanceTo(c.getPos()); 
+        float distance = locatable.distanceTo(customers[i]); 
         if(distance < smallestDistance) {
             smallestDistance = distance;
-            closest = &c;
+            minIndex = i;
         }
     }
-    return *closest;
+    return customers[minIndex];
 }

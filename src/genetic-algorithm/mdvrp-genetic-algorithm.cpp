@@ -3,11 +3,12 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <list>
 
 using namespace std;
 
-MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP* problem) {
-    this->problem = problem;
+MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP& pb): problem(pb) {
+    
 }
 
 void MDVRPGeneticAlgorithm::buildInitialPopulation() {
@@ -16,38 +17,44 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     int POP_SIZE = 1;
  
     cout << "POP_SIZE=" << POP_SIZE << "\n";
-    cout << "customers: " << problem->getCustomers().size() << "\n";
-
+    
     for(int i = 0; i < POP_SIZE; i++) {
         // Initialize empty routes
-        vector<Route> routes;
-        for(int d = 0; d < problem->getDepots().size(); d++) {
-            for(int v = 0; v < problem->getVehiclesPerDepot(); v++)
-                routes.push_back(Route(&problem->getDepots()[d]));
+        vector<Route> routes = vector<Route>();
+        for(int d = 0; d < problem.getDepots().size(); d++) {
+            for(int v = 0; v < problem.getVehiclesPerDepot(); v++)
+                routes.push_back(Route(problem.getDepots()[d]));
         }
+
+        vector<Customer> customersRemaining = problem.getCustomers();
 
         for(int j = 0; j < routes.size(); j++) {
-            cout << "\nroute " << j << ": " << routes[j].getDepot()->getPos().getX();
+            cout << "\nroute " << j << ": " << routes[j].getDepot().getX();
         }
-
-        vector<Customer> customersRemaining;
-        for(int j = 0; j < problem->getCustomers().size(); j++)
-            customersRemaining.push_back(problem->getCustomers()[j]);
 
         while(customersRemaining.size() > 0) {
             // Get a random depot
-            Depot randomDepot = problem->getDepots()[rand() % problem->getDepots().size()];
+            Depot& randomDepot = problem.getDepots()[rand() % problem.getDepots().size()];
             // Get a random vehicle from the depot
-            int vehicleNumber = randomDepot.getNumber() * problem->getVehiclesPerDepot() + rand() % problem->getVehiclesPerDepot();
+            int vehicleNumber = randomDepot.getNumber() * problem.getVehiclesPerDepot() + rand() % problem.getVehiclesPerDepot();
             // Get the corresponding route
-            Route *r = &routes[vehicleNumber];
+            Route& r = routes[vehicleNumber];
             // Get the closest customer to this depot
-            Customer closestCustomer = problem->getClosestCustomer(randomDepot.getPos(), customersRemaining);
+            Customer closestCustomer = problem.getClosestCustomer(randomDepot, customersRemaining);
             //Customer closestCustomer = customersRemaining[rand() % customersRemaining.size()];
+            
+            /*for(int j = 0; j < routes.size(); j++) {
+               cout << "\n1 route " << j << ": " << routes[j].getDepot().getNumber();
+            }*/
+            
             // Try to add it to the route   
-            if(routes[vehicleNumber].canAddCustomer(closestCustomer)) {
-                routes[vehicleNumber].addCustomer(closestCustomer);   
-                cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber; 
+            if(routes[vehicleNumber].canAddCustomer(&closestCustomer)) {
+                routes[vehicleNumber].addCustomer(&closestCustomer);
+                /*for(int j = 0; j < routes.size(); j++) {
+                   cout << "\n3 route " << j << ": " << routes[j].getDepot().getNumber();
+                }*/  
+                cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << r.getDepot().getNumber() << ")"; 
+
                 // Remove the customer from our local list
                 vector<Customer>::iterator position = std::find(customersRemaining.begin(), customersRemaining.end(), closestCustomer);
                 customersRemaining.erase(position);
@@ -56,6 +63,21 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
 
             }
         }
+        
+        /*vector<int> test;
+        for(int counter = 1; counter < 10; counter++) {
+
+            // WRONG after a few iterations
+            for(int j = 0; j < routes.size(); j++)
+                cout << "\nroute " << j << ": " << routes[j].getDepot().getNumber();
+
+            // OK
+            for(int j = 0; j < problem.getDepots().size(); j++)
+                cout << "\ndepot " << j << ": " << problem.getDepots()[j].getNumber();
+        
+            test.push_back(300000); // depending on the value we push here more or less routes have a broken depot number
+        }*/
+
 
         Individual ind(routes);
         

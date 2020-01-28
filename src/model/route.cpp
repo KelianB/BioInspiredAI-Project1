@@ -3,16 +3,15 @@
 #include "locatable.h"
 #include <iostream>
 
-Route::Route(Depot* depot) {
-    this->depot = depot;
+Route::Route(Depot dep): depot(dep) {
     this->totalDistanceRequireUpdate = true;
 }
 
-bool Route::canAddCustomer(Customer c) {
+bool Route::canAddCustomer(Customer* c) {
     return true;
 }
 
-void Route::addCustomer(Customer c) {
+void Route::addCustomer(Customer* c) {
     this->customers.push_back(c);
     this->totalDistanceRequireUpdate = true;
 }
@@ -23,14 +22,10 @@ float Route::getTotalDistance() {
         if(this->customers.size() == 0)
             this->totalDistance = 0;
         else {
-            float distance = this->getDepot()->getPos().distanceTo(this->customers[0].getPos());
-            std::cout << "\nDEPOT " << this->getDepot()->getNumber() << ":" << this->getDepot()->getPos().getX() << "," << this->getDepot()->getPos().getY();
-    
-            for(int i = 0; i < this->customers.size() - 1; i++) {
-                distance += this->customers[i].getPos().distanceTo(this->customers[i+1].getPos());
-            }
-            std::cout << "\n";
-            distance += this->customers[this->customers.size() - 1].getPos().distanceTo(this->getDepot()->getPos());
+            float distance = this->getDepot().distanceTo(*this->customers[0]);
+            for(int i = 0; i < this->customers.size() - 1; i++)
+                distance += this->customers[i]->distanceTo(*this->customers[i+1]);
+            distance += this->customers[this->customers.size() - 1]->distanceTo(this->getDepot());
             this->totalDistance = distance;
         }
     }

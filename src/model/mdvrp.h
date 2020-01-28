@@ -11,7 +11,7 @@ using namespace std;
 
 class MDVRP { 
     private:
-        unsigned int vehiclesPerDepot;
+        int vehiclesPerDepot;
         
         vector<Customer> customers;
         vector<Depot> depots;    
@@ -19,11 +19,11 @@ class MDVRP {
     public: 
         MDVRP(const char filePath[]);
 
-        Customer getClosestCustomer(Position pos, vector<Customer> customers);
+        Customer getClosestCustomer(Locatable locatable, vector<Customer> customers);
         
         vector<Customer> getCustomers() {return customers;}
         vector<Depot> getDepots() {return depots;}
-        unsigned int getVehiclesPerDepot() {return vehiclesPerDepot;}
+        int getVehiclesPerDepot() {return vehiclesPerDepot;}
 }; 
 
 #endif

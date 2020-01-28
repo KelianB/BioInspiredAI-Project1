@@ -1,25 +1,21 @@
 #ifndef CUSTOMER_H
 #define CUSTOMER_H
 
-#include "position.h"
+#include "locatable.h"
 
-class Customer { 
+class Customer : public Locatable { 
     private:
         int number;
         int maxServiceDuration;
         int demand;
-        Position pos;
     public: 
-        Customer(int number, float x, float y, int maxServiceDuration, int demand) {
-            this->number = number;
-            this->maxServiceDuration = maxServiceDuration;
-            this->demand = demand;
-            pos.set(x, y);
+        Customer(int nb, float x, float y, int msd, int dmd): Locatable(x,y) {
+            number = nb;
+            maxServiceDuration = msd;
+            demand = dmd;
         }
 
         int getNumber() {return number;}
-
-        Position getPos() {return pos;}
 
         bool operator==(const Customer &c) const {
             return number == c.number;

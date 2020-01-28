@@ -7,12 +7,11 @@
 class MDVRPGeneticAlgorithm {
     private:
         MDVRP* problem;
-        Population population;
-
-        Population buildInitialPopulation();
-    
+        Population population;    
     public:
         MDVRPGeneticAlgorithm(MDVRP* problem);
+
+        void buildInitialPopulation();
 };
 
 #endif

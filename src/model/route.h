@@ -10,15 +10,20 @@ using namespace std;
 
 class Route { 
     private:
-        vector<Locatable> locations;
+        Depot* depot;
+        vector<Locatable> customers;
+
+        bool totalDistanceRequireUpdate;
         float totalDistance;
 
         void updateTotalDistance();
     public: 
-        Route(Depot depot) {};
+        Route(Depot* depot);
+
+        Depot* getDepot() {return depot;}
 
         bool canAddCustomer(Customer customer) {return true;};
-        void addCustomer(Customer customer) {};
+        void addCustomer(Customer customer);
         bool isValid();
         float getTotalDistance();
 }; 

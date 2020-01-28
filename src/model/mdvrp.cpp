@@ -54,8 +54,8 @@ MDVRP::MDVRP(const char filePath[]) {
                 customers.push_back(Customer(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4]));   
             }
             // Read depot positions
-            else if(lineIndex < numDepots + numCustomers + numDepots) {
-                depots.at(lineIndex - numDepots - numCustomers).setPosition(numbers[1], numbers[2]);
+            else if(lineIndex <= numDepots + numCustomers + numDepots) {
+                depots.at(lineIndex - numDepots - numCustomers - 1).setPosition(numbers[1], numbers[2]);
             }
             else {
                 cout << "Too many lines in input problem data.";
@@ -77,7 +77,7 @@ MDVRP::MDVRP(const char filePath[]) {
 
 Customer MDVRP::getClosestCustomer(Locatable locatable, vector<Customer> customers) {
     Customer *closest;
-    float smallestDistance = 10000000;
+    float smallestDistance = 999999999;
 
     for(int i = 0; i < customers.size(); i++) {
         Customer c = customers[i];

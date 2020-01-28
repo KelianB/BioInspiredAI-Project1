@@ -1,7 +1,8 @@
 #include "locatable.h"
 #include <cmath>
+#include <iostream>
 
-Locatable::Locatable(float x, float y) {
+Locatable::Locatable(int x, int y) {
     this->x = x;
     this->y = y;
 }

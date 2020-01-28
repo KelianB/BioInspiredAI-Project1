@@ -8,11 +8,10 @@ using namespace std;
 
 MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP* problem) {
     this->problem = problem;
-    this->population = this->buildInitialPopulation();
 }
 
-Population MDVRPGeneticAlgorithm::buildInitialPopulation() {
-    Population pop = Population();
+void MDVRPGeneticAlgorithm::buildInitialPopulation() {
+    Population pop;
 
     int POP_SIZE = 1;
  
@@ -20,35 +19,31 @@ Population MDVRPGeneticAlgorithm::buildInitialPopulation() {
     cout << "customers: " << problem->getCustomers().size() << "\n";
 
     for(int i = 0; i < POP_SIZE; i++) {
-        //vector<Route> routes(problem->getDepots().size() * problem->getVehiclesPerDepot());
         // Initialize empty routes
         vector<Route> routes;
         for(int d = 0; d < problem->getDepots().size(); d++) {
+            Depot depot = problem->getDepots()[d];
             for(int v = 0; v < problem->getVehiclesPerDepot(); v++)
-                routes.push_back(Route(problem->getDepots()[d]));
+                routes.push_back(Route(&depot));
         }
 
         vector<Customer> customersRemaining;
         for(int j = 0; j < problem->getCustomers().size(); j++)
             customersRemaining.push_back(problem->getCustomers()[j]);
-    
-        while(customersRemaining.size() > 0) {
-            /*cout << "\n";
-            for(int j = 0; j < customersRemaining.size(); j++)
-                cout << customersRemaining[j]->getNumber() << ",";
-            cout << "\n";*/
 
+        while(customersRemaining.size() > 0) {
             // Get a random depot
             Depot randomDepot = problem->getDepots()[rand() % problem->getDepots().size()];
             // Get a random vehicle from the depot
             int vehicleNumber = randomDepot.getNumber() * problem->getVehiclesPerDepot() + rand() % problem->getVehiclesPerDepot();
             // Get the corresponding route
-            Route r = routes.at(vehicleNumber);
+            Route *r = &routes[vehicleNumber];
             // Get the closest customer to this depot
             Customer closestCustomer = problem->getClosestCustomer(randomDepot, customersRemaining);
+            //Customer closestCustomer = customersRemaining[rand() % customersRemaining.size()];
             // Try to add it to the route   
-            if(r.canAddCustomer(closestCustomer)) {
-                r.addCustomer(closestCustomer);   
+            if(r->canAddCustomer(closestCustomer)) {
+                r->addCustomer(closestCustomer);   
                 cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber; 
                 // Remove the customer from our local list
                 vector<Customer>::iterator position = std::find(customersRemaining.begin(), customersRemaining.end(), closestCustomer);
@@ -60,10 +55,13 @@ Population MDVRPGeneticAlgorithm::buildInitialPopulation() {
         }
 
         Individual ind(routes);
+        
+        float fitness = ind.fitness();
+        cout << "\nFitness=" << fitness;
         pop.addIndividual(ind);
     }
     
-    return pop;
+    this->population = pop;
 
     /*
     routes = []

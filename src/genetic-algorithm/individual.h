@@ -11,7 +11,7 @@ class Individual {
         vector<Route> routes;
     
     public:
-        Individual(vector<Route> routes) {};
+        Individual(vector<Route> routes);
 
         float fitness();
         void mutate();

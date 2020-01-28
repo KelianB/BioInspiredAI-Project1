@@ -9,7 +9,7 @@ class Depot: public Locatable {
         int maxVehicleLoad;
         int number;
     public: 
-        Depot(int number, int maxRouteDuration, int maxVehicleLoad)
+        Depot(int number, int maxRouteDuration, int maxVehicleLoadx)
         : Locatable(0, 0) {
             this->maxRouteDuration = maxRouteDuration;
             this->maxVehicleLoad = maxVehicleLoad;

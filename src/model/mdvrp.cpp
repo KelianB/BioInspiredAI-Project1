@@ -55,6 +55,7 @@ MDVRP::MDVRP(const char filePath[]) {
             }
             // Read depot positions
             else if(lineIndex <= numDepots + numCustomers + numDepots) {
+                cout << "\n" << lineIndex - numDepots - numCustomers - 1 << "->" << numbers[1];
                 depots[lineIndex - numDepots - numCustomers - 1].getPos().set(numbers[1], numbers[2]);
             }
             else {

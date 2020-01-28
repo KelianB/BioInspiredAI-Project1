@@ -22,10 +22,8 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
         // Initialize empty routes
         vector<Route> routes;
         for(int d = 0; d < problem->getDepots().size(); d++) {
-            for(int v = 0; v < problem->getVehiclesPerDepot(); v++) {
-                cout << "\nroute " << routes.size() << ": " << problem->getDepots()[d].getPos().getX();
+            for(int v = 0; v < problem->getVehiclesPerDepot(); v++)
                 routes.push_back(Route(&problem->getDepots()[d]));
-            }
         }
 
         for(int j = 0; j < routes.size(); j++) {

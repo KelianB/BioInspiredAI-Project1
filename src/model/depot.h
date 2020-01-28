@@ -18,8 +18,7 @@ class Depot {
         }
 
         int getNumber() {return number;}
-
-        Position getPos() {return pos;}
+        Position & getPos() {return pos;}
 }; 
 
 #endif

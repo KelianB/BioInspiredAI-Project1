@@ -9,7 +9,7 @@ Route::Route(Depot* depot) {
 }
 
 bool Route::canAddCustomer(Customer c) {
-    
+    return true;
 }
 
 void Route::addCustomer(Customer c) {

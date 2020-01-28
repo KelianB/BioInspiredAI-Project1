@@ -1,22 +1,25 @@
 #ifndef DEPOT_H
 #define DEPOT_H
 
-#include "locatable.h"
+#include "position.h"
 
-class Depot: public Locatable { 
+class Depot { 
     private:
         int maxRouteDuration;
         int maxVehicleLoad;
         int number;
+        Position pos;
+
     public: 
-        Depot(int number, int maxRouteDuration, int maxVehicleLoadx)
-        : Locatable(0, 0) {
+        Depot(int number, int maxRouteDuration, int maxVehicleLoad) {
             this->maxRouteDuration = maxRouteDuration;
             this->maxVehicleLoad = maxVehicleLoad;
             this->number = number;
         }
 
         int getNumber() {return number;}
+
+        Position getPos() {return pos;}
 }; 
 
 #endif

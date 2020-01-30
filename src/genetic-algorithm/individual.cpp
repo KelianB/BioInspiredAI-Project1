@@ -19,15 +19,16 @@ float Individual::fitness() {
     return 1 / (totalDist + 0.00000001); // prevent divisions by zero
 }
 
-void Individual::mutation(){
+void Individual::mutation() {
 	bool done = false;
 	do {
+        cout << "\n[Mutation] Attempting mutation.";
 		Route* randomRouteA = &this->routes[rand() % this->routes.size()]; //choose a random route
 		Route* randomRouteB = &this->routes[rand() % this->routes.size()]; //choose a random route
 		// if exactly one of the route is empty
 		if (randomRouteA->getCustomers().size() == 0 && randomRouteB->getCustomers().size() != 0) { 
 			cout << "\n[Mutation] Route A is empty. Inserting customer B in route A";
-            int random_customer = 1 + rand() % randomRouteB->getCustomers().size();
+            int random_customer = randomRouteA->getCustomers()[rand() % randomRouteB->getCustomers().size()];
 			if (randomRouteA->canAddCustomer(random_customer)){
 				randomRouteA->addCustomer(random_customer);
 				randomRouteB->removeCustomer(random_customer);
@@ -37,7 +38,7 @@ void Individual::mutation(){
 		}
 		else if (randomRouteA->getCustomers().size() != 0 && randomRouteB->getCustomers().size() == 0) {
             cout << "\n[Mutation] Route B is empty. Inserting customer A in route B";
-			int random_customer = 1 + rand() % randomRouteA->getCustomers().size();
+			int random_customer = randomRouteA->getCustomers()[rand() % randomRouteA->getCustomers().size()];
 			if (randomRouteB->canAddCustomer(random_customer)){
 				randomRouteB->addCustomer(random_customer);
 				randomRouteA->removeCustomer(random_customer);
@@ -47,21 +48,21 @@ void Individual::mutation(){
 		}
 		// If both routes are not empty
 		else {
-			int customerA = 1 + rand() % randomRouteA->getCustomers().size();
-			int customerB = 1 + rand() % randomRouteB->getCustomers().size();
+            int customerA = randomRouteA->getCustomers()[rand() % randomRouteA->getCustomers().size()];
+			int customerB = randomRouteB->getCustomers()[rand() % randomRouteB->getCustomers().size()];
             cout << "\n[Mutation] Trying to insert customer B in route A";
 			if (randomRouteA->canAddCustomer(customerB)) {
                 cout << " (success)";
-				vector<int>::iterator posB = std::find(randomRouteB->getCustomers().begin(), randomRouteB->getCustomers().end(), customerB);
-				randomRouteA->insertCustomer(customerB, posB);
-				randomRouteB->removeCustomer(customerB);
+				vector<int>::iterator posA = std::find(randomRouteA->getCustomers().begin(), randomRouteA->getCustomers().end(), customerA);
+                randomRouteA->insertCustomer(customerB, posA);
+                randomRouteB->removeCustomer(customerB);
 				done = true;
 			}
             cout << "\n[Mutation] Trying to insert customer A in route B";
 			if (randomRouteB->canAddCustomer(customerA)) {
                 cout << " (success)";
-				vector<int>::iterator posA = std::find(randomRouteA->getCustomers().begin(), randomRouteA->getCustomers().end(), customerA);
-				randomRouteA->insertCustomer(customerA, posA);
+				vector<int>::iterator posB = std::find(randomRouteB->getCustomers().begin(), randomRouteB->getCustomers().end(), customerB);
+				randomRouteB->insertCustomer(customerA, posB);
 				randomRouteA->removeCustomer(customerA);
 				done = true;
 			}

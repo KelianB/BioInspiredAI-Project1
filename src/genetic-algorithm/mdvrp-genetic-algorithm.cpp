@@ -30,62 +30,27 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
         for(int n = 0; n < problem.getCustomers().size(); n++)
             customersRemaining.push_back(problem.getCustomers()[n].getNumber());
 
-        for(int j = 0; j < routes.size(); j++) {
-            cout << "\nroute " << j << ": " << routes[j].getDepot().getX();
-        }
-
         while(customersRemaining.size() > 0) {
             // Get a random depot
-            int randomDepot = rand() % problem.getDepots().size();
+            int randomDepotIndex = rand() % problem.getDepots().size();
             // Get a random vehicle from the depot
-            int vehicleNumber = randomDepot * problem.getVehiclesPerDepot() + rand() % problem.getVehiclesPerDepot();
-            // Get the corresponding route
-            Route& r = routes[vehicleNumber];
+            int vehicleNumber = randomDepotIndex * problem.getVehiclesPerDepot() + rand() % problem.getVehiclesPerDepot();
             // Get the closest customer to this depot
-            Customer closestCustomer = problem.getClosestCustomer(problem.getDepots()[randomDepot], customersRemaining);
+            Customer closestCustomer = problem.getClosestCustomer(problem.getDepots()[randomDepotIndex], customersRemaining);
             //Customer closestCustomer = customersRemaining[rand() % customersRemaining.size()];
-            
-            /*for(int j = 0; j < routes.size(); j++) {
-               cout << "\n1 route " << j << ": " << routes[j].getDepot().getNumber();
-            }*/
-
-            cout << "\nNumber of customers remaining:" << customersRemaining.size();
             
             // Try to add it to the route   
             if(routes[vehicleNumber].canAddCustomer(closestCustomer)) {
                 routes[vehicleNumber].addCustomer(closestCustomer);
-                cout << "\nNumber of customers remaining:" << customersRemaining.size();
-                /*for(int j = 0; j < routes.size(); j++) {
-                   cout << "\n3 route " << j << ": " << routes[j].getDepot().getNumber();
-                }*/  
-                cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << r.getDepot().getNumber() << ")"; 
+                cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
 
                 // Remove the customer from our local list
-                cout << "\nTrying to erase customer:" << closestCustomer.getNumber();
-                vector<int>::iterator position = std::find(customersRemaining.begin(), customersRemaining.end(), closestCustomer.getNumber());
-                //cout << " (position in array: "  << ")";
-                customersRemaining.erase(position);
-                cout << "\nErased!";
+                customersRemaining.erase(std::find(customersRemaining.begin(), customersRemaining.end(), closestCustomer.getNumber()));
             }
             else {
 
             }
         }
-        
-        /*vector<int> test;
-        for(int counter = 1; counter < 10; counter++) {
-
-            // WRONG after a few iterations
-            for(int j = 0; j < routes.size(); j++)
-                cout << "\nroute " << j << ": " << routes[j].getDepot().getNumber();
-
-            // OK
-            for(int j = 0; j < problem.getDepots().size(); j++)
-                cout << "\ndepot " << j << ": " << problem.getDepots()[j].getNumber();
-        
-            test.push_back(300000); // depending on the value we push here more or less routes have a broken depot number
-        }*/
-
 
         Individual ind(routes);
         
@@ -95,30 +60,4 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     }
     
     this->population = pop;
-
-    /*
-    routes = []
-    vehicles = [1,2,3,4,5,6, 7,...]
-    customersRemaining = [0001,0002,2343,3554,0230,3256]
-    While customersRemaining.length > 0
-        Vehicle = random(vehicles)
-        route = new Route(vehicle.depot)
-        pos = vehicle.depot.pos
-        closestCustomer = null
-        Do {
-    closestCustomer=getClosestCustomer(pos, customersRemaining)
-    newRoute = route.addCustomer(closestCustomer);
-    newRoute = new Route(route, closestCustomer);
-    if(newRoute.isValid())
-    customersRemaining.remove(closestCustomer)
-    route = newRoute
-            else
-                break
-    }
-        While(customersRemaining.length > 0)
-            
-    Add route to routes
-    vehicles.remove(vehicle)
-
-*/
 }

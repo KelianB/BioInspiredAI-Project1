@@ -3,10 +3,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-Individual::Individual(int numberOfRoutes) {
-    this->routes = vector<Route>(numberOfRoutes);
-}
-
 Individual::Individual(vector<Route> routes) {
     this->routes = routes;
 }
@@ -24,9 +20,9 @@ float Individual::fitness() {
 Individual Individual::crossover(Individual parentB) {
     cout << "\nCrossover:";
     cout << "\nParent A:";
-    
 
-    Individual offspring(routes.size());
+
+    Individual offspring(routes);
 
     // "Choose an arbitrary part from the first parent"
     int randomRouteIndex = rand() % this->routes.size();
@@ -41,7 +37,7 @@ Individual Individual::crossover(Individual parentB) {
         
         Route routeInB = parentB.routes[routeIndex];
         // Remove customers that were already in route[randomRouteIndex]
-        for(int& customer : routes[randomRouteIndex].getCustomers()) {
+        for(int customer : routes[randomRouteIndex].getCustomers()) {
             if(routeInB.hasCustomer(customer))
                 routeInB.removeCustomer(customer);
         }
@@ -49,4 +45,5 @@ Individual Individual::crossover(Individual parentB) {
         offspring.routes[routeIndex] = routeInB;
     }
 
+    return offspring;
 }

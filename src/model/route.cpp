@@ -3,6 +3,8 @@
 #include "locatable.h"
 #include "mdvrp.h"
 #include <iostream>
+#include <algorithm>
+
 
 Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;

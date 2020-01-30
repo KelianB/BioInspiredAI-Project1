@@ -1,18 +1,19 @@
 #include "route.h"
 #include "depot.h"
 #include "locatable.h"
+#include "mdvrp.h"
 #include <iostream>
 
-Route::Route(Depot dep): depot(dep) {
+Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
 }
 
-bool Route::canAddCustomer(Customer* c) {
+bool Route::canAddCustomer(Customer c) {
     return true;
 }
 
-void Route::addCustomer(Customer* c) {
-    this->customers.push_back(c);
+void Route::addCustomer(Customer c) {
+    this->customers.push_back(c.getNumber());
     this->totalDistanceRequireUpdate = true;
 }
 
@@ -22,10 +23,10 @@ float Route::getTotalDistance() {
         if(this->customers.size() == 0)
             this->totalDistance = 0;
         else {
-            float distance = this->getDepot().distanceTo(*this->customers[0]);
+            float distance = this->getDepot().distanceTo(this->problem.getCustomers()[0]);
             for(int i = 0; i < this->customers.size() - 1; i++)
-                distance += this->customers[i]->distanceTo(*this->customers[i+1]);
-            distance += this->customers[this->customers.size() - 1]->distanceTo(this->getDepot());
+                distance += this->problem.getCustomers()[i].distanceTo(this->problem.getCustomers()[i+1]);
+            distance += this->problem.getCustomers()[this->customers.size() - 1].distanceTo(this->getDepot());
             this->totalDistance = distance;
         }
     }

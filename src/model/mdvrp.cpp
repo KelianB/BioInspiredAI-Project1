@@ -80,16 +80,16 @@ MDVRP::MDVRP(const char filePath[]) {
     }
 }
 
-Customer MDVRP::getClosestCustomer(Locatable locatable, vector<Customer> customers) {
+Customer MDVRP::getClosestCustomer(Locatable locatable, vector<int> customers) {
     float smallestDistance = 999999999;
     int minIndex;
 
     for(int i = 0; i < customers.size(); i++) {
-        float distance = locatable.distanceTo(customers[i]); 
+        float distance = locatable.distanceTo(getCustomers()[i]); 
         if(distance < smallestDistance) {
             smallestDistance = distance;
             minIndex = i;
         }
     }
-    return customers[minIndex];
+    return getCustomers()[minIndex];
 }

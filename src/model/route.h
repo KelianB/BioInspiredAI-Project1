@@ -24,10 +24,11 @@ class Route {
 
         Depot getDepot() {return depot;}
 
-        bool canAddCustomer(Customer customer);
-        void addCustomer(Customer customer);
+        bool canAddCustomer(int customer_number);
+        void addCustomer(int customer_number);
         bool isValid();
         float getTotalDistance();
+        void insertCustomer(int customer_number, int pos)
 
         Route &operator = (const Route &r) {
             depot = r.depot; return *this; 

@@ -8,12 +8,17 @@ Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
 }
 
-bool Route::canAddCustomer(Customer c) {
+bool Route::canAddCustomer(int c) {
     return true;
 }
 
-void Route::addCustomer(Customer c) {
-    this->customers.push_back(c.getNumber());
+void Route::addCustomer(int c) {
+    this->customers.push_back(c);
+    this->totalDistanceRequireUpdate = true;
+}
+
+void Route::insertCustomer(int c, int pos){
+    this.insert(pos, c);
     this->totalDistanceRequireUpdate = true;
 }
 

@@ -63,6 +63,6 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     cout << "\n### Testing crossover: ###";
     this->population.getIndividuals()[0].crossover(this->population.getIndividuals()[1]);
 
-    cout << "\nTesting mutation \n";
+    cout << "\n###Testing mutation: ###";
     this->population.getIndividuals()[0].mutation();
 }

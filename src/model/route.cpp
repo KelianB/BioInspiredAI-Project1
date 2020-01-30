@@ -11,7 +11,6 @@ Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
 }
 
-<<<<<<< HEAD
 bool Route::canInsertCustomer(int customerNumber, int position) {
     if(position < 0 || position > this->customers.size()) {
         cout << "\n invalid position " << position;
@@ -45,25 +44,13 @@ bool Route::canAddCustomer(int customerNumber) {
     return this->canInsertCustomer(customerNumber, this->customers.size());
 }
 
-void Route::addCustomer(Customer c) {
-    this->customers.push_back(c.getNumber());
-=======
-bool Route::canAddCustomer(int c) {
-    return true;
-}
-
-bool Route::canInsertCustomer(int c){
-    return true;
-}
-
-void Route::addCustomer(int c) {
-    this->customers.push_back(c);
+void Route::addCustomer(int customerNumber) {
+    this->customers.push_back(customerNumber);
     this->totalDistanceRequireUpdate = true;
 }
 
 void Route::insertCustomer(int c, vector<int>::iterator pos){
     this->getCustomers().insert(pos, c);
->>>>>>> b4e6be3536907d230ccb6be1111186dd37d376eb
     this->totalDistanceRequireUpdate = true;
 }
 

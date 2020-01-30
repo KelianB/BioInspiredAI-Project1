@@ -40,10 +40,10 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
             //Customer closestCustomer = problem.getCustomerByNumber(customersRemaining[rand() % customersRemaining.size()]);
             
             // Try to add it to the route   
-            if(routes[vehicleNumber].canAddCustomer(closestCustomer)) {
+            cout << "\nTrying to add customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
+            if(routes[vehicleNumber].canAddCustomer(closestCustomer.getNumber())) {
                 routes[vehicleNumber].addCustomer(closestCustomer);
-                cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
-
+                cout << " success";
                 // Remove the customer from our local list
                 customersRemaining.erase(std::find(customersRemaining.begin(), customersRemaining.end(), closestCustomer.getNumber()));
             }
@@ -61,6 +61,6 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     
     this->population = pop;
 
-    cout << "\nTesting crossover:\n";
+    cout << "\n### Testing crossover: ###";
     this->population.getIndividuals()[0].crossover(this->population.getIndividuals()[1]);
 }

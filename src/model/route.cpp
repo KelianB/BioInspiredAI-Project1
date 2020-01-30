@@ -10,12 +10,37 @@ Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
 }
 
-bool Route::canAddCustomer(Customer c) {
+bool Route::canInsertCustomer(int customerNumber, int position) {
+    if(position < 0 || position > this->customers.size()) {
+        cout << "\n invalid position " << position;
+        return false;
+    }
+
+    Customer c = problem.getCustomerByNumber(customerNumber);
+
     // capacity limit: the total demand of the customers on any route does not exceed a vehicle’s capacity.
+    bool capacityCriterion = this->getTotalDemand() + c.getDemand() <= depot.getMaxVehicleLoad();
+    if(!capacityCriterion)
+        return false;
 
-    // route limit: the total duration of a route does not exceed a preset value (for this project, it is only for those problems for which this value is mentioned in the test data, that is, the value in the test data is not 0).
+    // route limit: the total duration of a route does not exceed a preset value (ignore criterion if value is 0)
+    if(depot.getMaxRouteDuration() != 0) {
+        Locatable previous = (position == 0 ? 
+            static_cast<Locatable const &>(depot) : 
+            problem.getCustomerByNumber(customers[position - 1]));
+        Locatable next = (position == customers.size() ? 
+            static_cast<Locatable const &>(depot) : 
+            problem.getCustomerByNumber(customers[position]));
+        float distanceDelta = previous.distanceTo(c) + c.distanceTo(next) - previous.distanceTo(next);
 
+        bool routeDurationCriterion = this->getTotalDistance() + distanceDelta <= depot.getMaxRouteDuration();
+        return routeDurationCriterion;
+    }
     return true;
+}
+
+bool Route::canAddCustomer(int customerNumber) {
+    return this->canInsertCustomer(customerNumber, this->customers.size());
 }
 
 void Route::addCustomer(Customer c) {
@@ -64,10 +89,8 @@ float Route::getTotalDistance() {
 
 int Route::getTotalDemand() {
     // TODO: recalculate only if needed
-    int demand;
-    if(this->customers.size() == 0)
-        demand = 0;
-    else {
+    int demand = 0;
+    if(this->customers.size() > 0) {
         for(int i = 0; i < this->customers.size(); i++) {
             int customerNumber = this->customers[i];
             demand += this->problem.getCustomerByNumber(customerNumber).getDemand();

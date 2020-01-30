@@ -11,12 +11,14 @@ class Depot : public Locatable {
         int number;
     public: 
         Depot(int nb, int mrd, int mvl): Locatable(0, 0) {
+            number = nb;
             maxRouteDuration = mrd;
             maxVehicleLoad = mvl;
-            number = nb;
         }
 
         int getNumber() {return number;}
+        int getMaxVehicleLoad() {return maxVehicleLoad;}
+        int getMaxRouteDuration() {return maxRouteDuration;}
 
         bool operator==(const Depot &c) const {
             return number == c.number;

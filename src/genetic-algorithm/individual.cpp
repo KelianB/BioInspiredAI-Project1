@@ -12,10 +12,8 @@ Individual::Individual(vector<Route> routes) {
 
 float Individual::fitness() {
     float totalDist = 0;
-    for(int i = 0; i < routes.size(); i++){
-    	//std::cout << "\nDistance de la route" << routes[i].getTotalDistance();
+    for(int i = 0; i < routes.size(); i++)
         totalDist += routes[i].getTotalDistance();
-    }
     cout << "\nTotal distance of route: " << totalDist;
     return 1 / (totalDist + 0.00000001); // prevent divisions by zero
 }
@@ -30,7 +28,6 @@ void Individual::print() {
 }
 
 Individual Individual::crossover(Individual parentB) {
-    cout << "\nCrossover:";
     cout << "\nParent A:\n";
     print();
     cout << "\nParent B:\n";

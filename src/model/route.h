@@ -22,17 +22,19 @@ class Route {
     public: 
         Route(MDVRP& problem, Depot dep);
 
-        Depot getDepot() {return depot;}
+        bool canAddCustomer(int customerNumber);
+        bool canInsertCustomer(int customerNumber, int position); 
 
-        bool canAddCustomer(Customer customer);
         void addCustomer(Customer customer);
         bool hasCustomer(int customerNumber);
         bool removeCustomer(int customerNumber);
         void setCustomers(vector<int> customerNumbers);
         vector<int>& getCustomers() {return customers;};
         bool isValid();
+
         float getTotalDistance();
         int getTotalDemand();
+        Depot getDepot() {return depot;}
 
         Route &operator = (const Route &r) {
             depot = r.depot; return *this; 

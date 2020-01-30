@@ -26,6 +26,9 @@ class Route {
 
         bool canAddCustomer(Customer customer);
         void addCustomer(Customer customer);
+        bool hasCustomer(int customerNumber);
+        bool removeCustomer(int customerNumber);
+        vector<int> getCustomers() {return customers;};
         bool isValid();
         float getTotalDistance();
 

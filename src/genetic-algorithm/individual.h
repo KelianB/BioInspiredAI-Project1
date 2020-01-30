@@ -11,11 +11,12 @@ class Individual {
         vector<Route> routes;
     
     public:
+        Individual(int numberOfRoutes);
         Individual(vector<Route> routes);
 
         float fitness();
         void mutate();
-        Individual makeOffspring(Individual ind);
+        Individual crossover(Individual ind);
 };
 
 #endif

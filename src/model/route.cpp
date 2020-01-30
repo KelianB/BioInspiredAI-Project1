@@ -17,6 +17,19 @@ void Route::addCustomer(Customer c) {
     this->totalDistanceRequireUpdate = true;
 }
 
+bool Route::hasCustomer(int customerNumber) {
+    vector<int>::iterator pos = std::find(getCustomers().begin(), getCustomers().end(), customerNumber);
+    return pos != getCustomers().end();
+}
+
+bool Route::removeCustomer(int customerNumber) {
+    if(this->hasCustomer(customerNumber)) {
+        customers.erase(std::find(getCustomers().begin(), getCustomers().end(), customerNumber));
+        return true;
+    }
+    return false;
+}
+
 float Route::getTotalDistance() {
     // Recalculate distance only if needed
     if(this->totalDistanceRequireUpdate) {

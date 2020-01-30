@@ -48,18 +48,24 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
             /*for(int j = 0; j < routes.size(); j++) {
                cout << "\n1 route " << j << ": " << routes[j].getDepot().getNumber();
             }*/
+
+            cout << "\nNumber of customers remaining:" << customersRemaining.size();
             
             // Try to add it to the route   
             if(routes[vehicleNumber].canAddCustomer(closestCustomer)) {
                 routes[vehicleNumber].addCustomer(closestCustomer);
+                cout << "\nNumber of customers remaining:" << customersRemaining.size();
                 /*for(int j = 0; j < routes.size(); j++) {
                    cout << "\n3 route " << j << ": " << routes[j].getDepot().getNumber();
                 }*/  
                 cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << r.getDepot().getNumber() << ")"; 
 
                 // Remove the customer from our local list
+                cout << "\nTrying to erase customer:" << closestCustomer.getNumber();
                 vector<int>::iterator position = std::find(customersRemaining.begin(), customersRemaining.end(), closestCustomer.getNumber());
+                //cout << " (position in array: "  << ")";
                 customersRemaining.erase(position);
+                cout << "\nErased!";
             }
             else {
 

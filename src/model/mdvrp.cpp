@@ -59,7 +59,6 @@ MDVRP::MDVRP(const char filePath[]) {
             }
             // Read depot positions
             else if(lineIndex <= numDepots + numCustomers + numDepots) {
-                cout << "\n" << lineIndex - numDepots - numCustomers - 1 << "->" << numbers[1];
                 depots[lineIndex - numDepots - numCustomers - 1].setPosition(numbers[1], numbers[2]);
             }
             else {
@@ -80,16 +79,21 @@ MDVRP::MDVRP(const char filePath[]) {
     }
 }
 
-Customer MDVRP::getClosestCustomer(Locatable locatable, vector<int> customers) {
-    float smallestDistance = 999999999;
-    int minIndex;
+Customer MDVRP::getCustomerByNumber(int number) {
+    return getCustomers()[number - 1];
+}
 
-    for(int i = 0; i < customers.size(); i++) {
-        float distance = locatable.distanceTo(getCustomers()[i]); 
+Customer MDVRP::getClosestCustomer(Locatable locatable, vector<int> customerNumbers) {
+    float smallestDistance = 999999999;
+    int minNumber;
+
+    for(int i = 0; i < customerNumbers.size(); i++) {
+        int customerNumber = customerNumbers[i];
+        float distance = locatable.distanceTo(getCustomerByNumber(customerNumber)); 
         if(distance < smallestDistance) {
             smallestDistance = distance;
-            minIndex = i;
+            minNumber = customerNumber;
         }
     }
-    return getCustomers()[minIndex];
+    return getCustomerByNumber(minNumber);
 }

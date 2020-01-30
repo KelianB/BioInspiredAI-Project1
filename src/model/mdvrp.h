@@ -19,6 +19,7 @@ class MDVRP {
     public: 
         MDVRP(const char filePath[]);
 
+        Customer getCustomerByNumber(int number);
         Customer getClosestCustomer(Locatable locatable, vector<int> customers);
         
         vector<Customer> getCustomers() {return customers;}

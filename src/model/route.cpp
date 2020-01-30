@@ -15,6 +15,10 @@ bool Route::canAddCustomer(int c) {
     return true;
 }
 
+bool Route::canInsertCustomer(int c){
+    return true;
+}
+
 void Route::addCustomer(int c) {
     this->customers.push_back(c);
     this->totalDistanceRequireUpdate = true;

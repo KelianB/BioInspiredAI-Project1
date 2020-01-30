@@ -21,12 +21,13 @@ float Individual::fitness() {
 void Individual::mutation(){
 	bool done = false;
 	do {
-		Route* randomRouteA = &this->routes[rand() % this->routes.size()]; //+1
-		Route* randomRouteB = &this->routes[rand() % this->routes.size()];
+		Route* randomRouteA = &this->routes[rand() % this->routes.size()]; //choose a random route
+		Route* randomRouteB = &this->routes[rand() % this->routes.size()]; //choose a random route
 
-		if (randomRouteA->getCustomers().size() == 0 and randomRouteB->getCustomers().size() != 0){
+		// if exactly one of the route is empty
+		if (randomRouteA->getCustomers().size() == 0 and randomRouteB->getCustomers().size() != 0){ 
 			int random_customer = rand() % randomRouteB->getCustomers().size();
-			if (randomRouteA->canAddCustomer(random_customer)){
+			if (randomRouteA->canInsertCustomer(random_customer)){
 				randomRouteA->addCustomer(random_customer);
 				randomRouteB->removeCustomer(random_customer);
 				done = true;
@@ -34,12 +35,13 @@ void Individual::mutation(){
 		}
 		else if (randomRouteA->getCustomers().size() != 0 and randomRouteB->getCustomers().size() == 0){
 			int random_customer = rand() % randomRouteA->getCustomers().size();
-			if (randomRouteB->canAddCustomer(random_customer)){
+			if (randomRouteB->canInsertCustomer(random_customer)){
 				randomRouteB->addCustomer(random_customer);
 				randomRouteA->removeCustomer(random_customer);
 				done = true;
 			}
 		}
+		// If both routes are not empty
 		else{
 			int customerA = rand() % randomRouteA->getCustomers().size();
 			int customerB = rand() % randomRouteB->getCustomers().size();

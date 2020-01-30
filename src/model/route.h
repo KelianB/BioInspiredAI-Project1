@@ -26,6 +26,7 @@ class Route {
 
 
         bool canAddCustomer(int customer_number);
+        bool canInsertCustomer(int customer_number)
         void addCustomer(int customer_number);
         bool hasCustomer(int customerNumber);
         bool removeCustomer(int customerNumber);

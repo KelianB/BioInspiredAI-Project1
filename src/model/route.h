@@ -32,7 +32,7 @@ class Route {
         vector<int> getCustomers() {return customers;};
         bool isValid();
         float getTotalDistance();
-        void insertCustomer(int customer_number, int pos)
+        void insertCustomer(int customer_number, vector<int>::iterator pos);
 
         Route &operator = (const Route &r) {
             depot = r.depot; return *this; 

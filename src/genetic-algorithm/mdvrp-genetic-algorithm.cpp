@@ -40,8 +40,8 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
             //Customer closestCustomer = customersRemaining[rand() % customersRemaining.size()];
             
             // Try to add it to the route   
-            if(routes[vehicleNumber].canAddCustomer(closestCustomer)) {
-                routes[vehicleNumber].addCustomer(closestCustomer);
+            if(routes[vehicleNumber].canAddCustomer(closestCustomer.getNumber())) {
+                routes[vehicleNumber].addCustomer(closestCustomer.getNumber());
                 cout << "\nAdding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
 
                 // Remove the customer from our local list
@@ -53,7 +53,7 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
         }
 
         Individual ind(routes);
-        
+        ind.mutation();
         float fitness = ind.fitness();
         cout << "\nFitness=" << fitness;
         pop.addIndividual(ind);

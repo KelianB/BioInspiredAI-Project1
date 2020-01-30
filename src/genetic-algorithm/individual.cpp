@@ -21,31 +21,44 @@ float Individual::fitness() {
 void Individual::mutation(){
 	bool done = false;
 	do {
-		randomRouteA = this->routes[rand() % this->routes.size()]; //+1
-		randomRouteB = this->routes[rand() % this->routes.size()];
+		Route* randomRouteA = &this->routes[rand() % this->routes.size()]; //+1
+		Route* randomRouteB = &this->routes[rand() % this->routes.size()];
 
-		if (randomRouteA.size() == 0 and randomRouteB.size() != 0){
-			random_customer = rand() % randomRouteB.size();
-			if (randomRouteA.canAddCustomer(random_customer)){
-				randomRouteA.add(random_customer);
-				//function to remove random_custom de randomRouteB
+		if (randomRouteA->getCustomers().size() == 0 and randomRouteB->getCustomers().size() != 0){
+			int random_customer = rand() % randomRouteB->getCustomers().size();
+			if (randomRouteA->canAddCustomer(random_customer)){
+				randomRouteA->addCustomer(random_customer);
+				randomRouteB->removeCustomer(random_customer);
 				done = true;
 			}	
 		}
-		else if (randomRouteA.size() != 0 and randomRouteB.size() == 0){
-			random_customer = rand() % randomRouteA.size();
-			if (randomRouteB.canAddCustomer(random_customer)){
-				randomRouteB.add(random_customer);
-				//function to remove random_custom de randomRouteB
+		else if (randomRouteA->getCustomers().size() != 0 and randomRouteB->getCustomers().size() == 0){
+			int random_customer = rand() % randomRouteA->getCustomers().size();
+			if (randomRouteB->canAddCustomer(random_customer)){
+				randomRouteB->addCustomer(random_customer);
+				randomRouteA->removeCustomer(random_customer);
 				done = true;
 			}
 		}
 		else{
-			customerA = rand() % randomRouteA.size();
-			customerB = rand() % randomRouteB.size();
+			int customerA = rand() % randomRouteA->getCustomers().size();
+			int customerB = rand() % randomRouteB->getCustomers().size();
+			if (randomRouteA->canAddCustomer(customerB)){
+				vector<int>::iterator posB = std::find(randomRouteB->getCustomers().begin(), randomRouteB->getCustomers().end(), customerB);
+				randomRouteA->insertCustomer(customerB, posB);
+				randomRouteB->removeCustomer(customerB);
+				done = true;
+			}
+			if (randomRouteB->canAddCustomer(customerA)){
+				vector<int>::iterator posA = std::find(randomRouteA->getCustomers().begin(), randomRouteA->getCustomers().end(), customerA);
+				randomRouteA->insertCustomer(customerA, posA);
+				randomRouteA->removeCustomer(customerA);
+				done = true;
+			}
 		}
 	}
-	while (!done)
+	while (!done);
+}
 
 Individual Individual::crossover(Individual parentB) {
     cout << "\nCrossover:";

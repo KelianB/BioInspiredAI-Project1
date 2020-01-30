@@ -4,7 +4,8 @@
 #include "mdvrp.h"
 #include <iostream>
 #include <algorithm>
-
+#include <bits/stdc++.h>
+using namespace std;
 
 Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
@@ -19,8 +20,8 @@ void Route::addCustomer(int c) {
     this->totalDistanceRequireUpdate = true;
 }
 
-void Route::insertCustomer(int c, int pos){
-    this.insert(pos, c);
+void Route::insertCustomer(int c, vector<int>::iterator pos){
+    this->getCustomers().insert(pos, c);
     this->totalDistanceRequireUpdate = true;
 }
 

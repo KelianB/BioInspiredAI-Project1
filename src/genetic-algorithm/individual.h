@@ -16,6 +16,7 @@ class Individual {
         float fitness();
         void mutate();
         Individual crossover(Individual ind);
+	void mutation();
 };
 
 #endif

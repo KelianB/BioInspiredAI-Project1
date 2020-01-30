@@ -26,14 +26,16 @@ class Route {
 
 
         bool canAddCustomer(int customer_number);
-        bool canInsertCustomer(int customer_number)
+        bool canInsertCustomer(int customer_number);
         void addCustomer(int customer_number);
         bool hasCustomer(int customerNumber);
         bool removeCustomer(int customerNumber);
-        vector<int> getCustomers() {return customers;};
+        void setCustomers(vector<int> customerNumbers);
+        vector<int>& getCustomers() {return customers;};
         bool isValid();
         float getTotalDistance();
         void insertCustomer(int customer_number, vector<int>::iterator pos);
+        int getTotalDemand();
 
         Route &operator = (const Route &r) {
             depot = r.depot; return *this; 

@@ -30,8 +30,7 @@ void Route::insertCustomer(int c, vector<int>::iterator pos){
 }
 
 bool Route::hasCustomer(int customerNumber) {
-    vector<int>::iterator pos = std::find(getCustomers().begin(), getCustomers().end(), customerNumber);
-    return pos != getCustomers().end();
+    return std::find(getCustomers().begin(), getCustomers().end(), customerNumber) != getCustomers().end();
 }
 
 bool Route::removeCustomer(int customerNumber) {
@@ -42,6 +41,12 @@ bool Route::removeCustomer(int customerNumber) {
     return false;
 }
 
+void Route::setCustomers(vector<int> customerNumbers) {
+    this->customers.clear();
+    for(int i = 0; i < customerNumbers.size(); i++)
+        this->customers.push_back(customerNumbers[i]);
+}
+
 float Route::getTotalDistance() {
     // Recalculate distance only if needed
     if(this->totalDistanceRequireUpdate) {
@@ -49,12 +54,31 @@ float Route::getTotalDistance() {
             this->totalDistance = 0;
         else {
             float distance = this->getDepot().distanceTo(this->problem.getCustomers()[0]);
-            for(int i = 0; i < this->customers.size() - 1; i++)
-                distance += this->problem.getCustomers()[i].distanceTo(this->problem.getCustomers()[i+1]);
-            distance += this->problem.getCustomers()[this->customers.size() - 1].distanceTo(this->getDepot());
+            for(int i = 0; i < this->customers.size() - 1; i++) {
+                int customerNumber = this->customers[i];
+                int nextCustomerNumber = this->customers[i+1];
+                distance += this->problem.getCustomerByNumber(customerNumber).distanceTo(this->problem.getCustomerByNumber(i+1));
+            }
+            distance += this->problem.getCustomerByNumber(this->customers[this->customers.size() - 1]).distanceTo(this->getDepot());
             this->totalDistance = distance;
         }
+        this->totalDistanceRequireUpdate = false;
     }
 
     return this->totalDistance;
+}
+
+int Route::getTotalDemand() {
+    // TODO: recalculate only if needed
+    int demand;
+    if(this->customers.size() == 0)
+        demand = 0;
+    else {
+        for(int i = 0; i < this->customers.size(); i++) {
+            int customerNumber = this->customers[i];
+            demand += this->problem.getCustomerByNumber(customerNumber).getDemand();
+        }
+    }
+
+    return demand;
 }

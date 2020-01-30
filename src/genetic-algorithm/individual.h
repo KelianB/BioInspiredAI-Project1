@@ -13,8 +13,10 @@ class Individual {
     public:
         Individual(vector<Route> routes);
 
+        vector<Route>& getRoutes() {return routes;};
         float fitness();
         void mutate();
+        void print();
         Individual crossover(Individual ind);
 	void mutation();
 };

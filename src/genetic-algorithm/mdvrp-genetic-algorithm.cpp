@@ -53,7 +53,6 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
         }
 
         Individual ind(routes);
-        ind.mutation();
         float fitness = ind.fitness();
         cout << "\nFitness=" << fitness;
         pop.addIndividual(ind);
@@ -63,4 +62,7 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
 
     cout << "\nTesting crossover:\n";
     this->population.getIndividuals()[0].crossover(this->population.getIndividuals()[1]);
+
+    cout << "\nTesting mutation \n";
+    this->population.getIndividuals()[0].mutation();
 }

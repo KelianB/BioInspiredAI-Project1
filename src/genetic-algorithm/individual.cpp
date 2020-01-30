@@ -26,6 +26,8 @@ void Individual::mutation(){
 	do {
 		Route* randomRouteA = &this->routes[rand() % this->routes.size()]; //choose a random route
 		Route* randomRouteB = &this->routes[rand() % this->routes.size()]; //choose a random route
+		cout << "test" << std::endl;
+		cout << randomRouteB->getCustomers().size();
 
 		// if exactly one of the route is empty
 		if (randomRouteA->getCustomers().size() == 0 and randomRouteB->getCustomers().size() != 0){ 

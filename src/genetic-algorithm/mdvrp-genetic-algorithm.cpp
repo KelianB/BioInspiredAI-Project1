@@ -14,7 +14,7 @@ MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP& pb): problem(pb) {
 void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     Population pop;
 
-    int POP_SIZE = 1;
+    int POP_SIZE = 2;
  
     cout << "POP_SIZE=" << POP_SIZE << "\n";
     
@@ -37,7 +37,7 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
             int vehicleNumber = randomDepotIndex * problem.getVehiclesPerDepot() + rand() % problem.getVehiclesPerDepot();
             // Get the closest customer to this depot
             Customer closestCustomer = problem.getClosestCustomer(problem.getDepots()[randomDepotIndex], customersRemaining);
-            //Customer closestCustomer = customersRemaining[rand() % customersRemaining.size()];
+            //Customer closestCustomer = problem.getCustomerByNumber(customersRemaining[rand() % customersRemaining.size()]);
             
             // Try to add it to the route   
             if(routes[vehicleNumber].canAddCustomer(closestCustomer)) {
@@ -60,4 +60,7 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     }
     
     this->population = pop;
+
+    cout << "\nTesting crossover:\n";
+    this->population.getIndividuals()[0].crossover(this->population.getIndividuals()[1]);
 }

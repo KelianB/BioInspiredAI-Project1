@@ -28,9 +28,11 @@ class Route {
         void addCustomer(Customer customer);
         bool hasCustomer(int customerNumber);
         bool removeCustomer(int customerNumber);
-        vector<int> getCustomers() {return customers;};
+        void setCustomers(vector<int> customerNumbers);
+        vector<int>& getCustomers() {return customers;};
         bool isValid();
         float getTotalDistance();
+        int getTotalDemand();
 
         Route &operator = (const Route &r) {
             depot = r.depot; return *this; 

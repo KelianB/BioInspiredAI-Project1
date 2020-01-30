@@ -16,6 +16,7 @@ class Customer : public Locatable {
         }
 
         int getNumber() {return number;}
+        int getDemand() {return demand;}
 
         bool operator==(const Customer &c) const {
             return number == c.number;

@@ -4,15 +4,18 @@
 #include <vector>
 #include "individual.h"
 
+using namespace std;
+
 class Population {
     private:
-        std::vector<Individual> individuals;
+        vector<Individual> individuals;
     
     public:
         Population();
 
         Individual getFittestIndividual();
-        void addIndividual(Individual ind) {}
+        vector<Individual> getIndividuals() {return individuals;};
+        void addIndividual(Individual ind);
         void insertIndividuals(std::vector<Individual> inds);
 };
 

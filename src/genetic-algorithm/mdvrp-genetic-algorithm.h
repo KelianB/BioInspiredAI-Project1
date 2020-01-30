@@ -11,7 +11,8 @@ class MDVRPGeneticAlgorithm {
     public:
         MDVRPGeneticAlgorithm(MDVRP& pb);
 
-        void buildInitialPopulation();
+        void buildInitialPopulation(int populationSize);
+        void solve();
 };
 
 #endif

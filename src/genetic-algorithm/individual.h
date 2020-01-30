@@ -13,11 +13,21 @@ class Individual {
     public:
         Individual(vector<Route> routes);
 
+        float getTotalDistance();
         vector<Route>& getRoutes() {return routes;};
-        float fitness();
+
         void print();
+
         Individual crossover(Individual ind);
 	    void mutation();
+        float fitness();
+
+        bool operator > (Individual& ind) {
+            return fitness() > ind.fitness();
+        }
+        bool operator < (Individual& ind) {
+            return fitness() < ind.fitness();
+        }
 };
 
 #endif

@@ -21,7 +21,7 @@ int main() {
 
     MDVRP problem("../../testing-data/p01");
     MDVRPGeneticAlgorithm ga(problem); 
-    ga.buildInitialPopulation();
+    ga.solve();
     cout << "\nDone";
     return 1;
 }

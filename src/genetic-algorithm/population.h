@@ -12,7 +12,7 @@ class Population {
     
     public:
         Population();
-
+ 
         Individual getFittestIndividual();
         vector<Individual> getIndividuals() {return individuals;};
         void addIndividual(Individual ind);

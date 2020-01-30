@@ -6,6 +6,7 @@
 
 using namespace std;
 
+
 Individual::Individual(vector<Route> routes) {
     this->routes = routes;
 }
@@ -16,6 +17,52 @@ float Individual::fitness() {
         totalDist += routes[i].getTotalDistance();
     cout << "\nTotal distance of route: " << totalDist;
     return 1 / (totalDist + 0.00000001); // prevent divisions by zero
+}
+
+void Individual::mutation(){
+	bool done = false;
+	do {
+		Route* randomRouteA = &this->routes[rand() % this->routes.size()]; //choose a random route
+		Route* randomRouteB = &this->routes[rand() % this->routes.size()]; //choose a random route
+		cout << "test" << std::endl;
+		cout << randomRouteB->getCustomers().size();
+
+		// if exactly one of the route is empty
+		if (randomRouteA->getCustomers().size() == 0 and randomRouteB->getCustomers().size() != 0){ 
+			int random_customer = rand() % randomRouteB->getCustomers().size();
+			if (randomRouteA->canInsertCustomer(random_customer)){
+				randomRouteA->addCustomer(random_customer);
+				randomRouteB->removeCustomer(random_customer);
+				done = true;
+			}	
+		}
+		else if (randomRouteA->getCustomers().size() != 0 and randomRouteB->getCustomers().size() == 0){
+			int random_customer = rand() % randomRouteA->getCustomers().size();
+			if (randomRouteB->canInsertCustomer(random_customer)){
+				randomRouteB->addCustomer(random_customer);
+				randomRouteA->removeCustomer(random_customer);
+				done = true;
+			}
+		}
+		// If both routes are not empty
+		else{
+			int customerA = rand() % randomRouteA->getCustomers().size();
+			int customerB = rand() % randomRouteB->getCustomers().size();
+			if (randomRouteA->canAddCustomer(customerB)){
+				vector<int>::iterator posB = std::find(randomRouteB->getCustomers().begin(), randomRouteB->getCustomers().end(), customerB);
+				randomRouteA->insertCustomer(customerB, posB);
+				randomRouteB->removeCustomer(customerB);
+				done = true;
+			}
+			if (randomRouteB->canAddCustomer(customerA)){
+				vector<int>::iterator posA = std::find(randomRouteA->getCustomers().begin(), randomRouteA->getCustomers().end(), customerA);
+				randomRouteA->insertCustomer(customerA, posA);
+				randomRouteA->removeCustomer(customerA);
+				done = true;
+			}
+		}
+	}
+	while (!done);
 }
 
 void Individual::print() {

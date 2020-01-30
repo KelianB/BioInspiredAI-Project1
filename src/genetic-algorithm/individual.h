@@ -18,6 +18,7 @@ class Individual {
         void mutate();
         void print();
         Individual crossover(Individual ind);
+	void mutation();
 };
 
 #endif

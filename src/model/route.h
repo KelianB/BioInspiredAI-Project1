@@ -24,8 +24,12 @@ class Route {
 
         Depot getDepot() {return depot;}
 
+
         bool canAddCustomer(int customer_number);
         void addCustomer(int customer_number);
+        bool hasCustomer(int customerNumber);
+        bool removeCustomer(int customerNumber);
+        vector<int> getCustomers() {return customers;};
         bool isValid();
         float getTotalDistance();
         void insertCustomer(int customer_number, int pos)

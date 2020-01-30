@@ -3,6 +3,8 @@
 #include "locatable.h"
 #include "mdvrp.h"
 #include <iostream>
+#include <algorithm>
+
 
 Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
@@ -20,6 +22,19 @@ void Route::addCustomer(int c) {
 void Route::insertCustomer(int c, int pos){
     this.insert(pos, c);
     this->totalDistanceRequireUpdate = true;
+}
+
+bool Route::hasCustomer(int customerNumber) {
+    vector<int>::iterator pos = std::find(getCustomers().begin(), getCustomers().end(), customerNumber);
+    return pos != getCustomers().end();
+}
+
+bool Route::removeCustomer(int customerNumber) {
+    if(this->hasCustomer(customerNumber)) {
+        customers.erase(std::find(getCustomers().begin(), getCustomers().end(), customerNumber));
+        return true;
+    }
+    return false;
 }
 
 float Route::getTotalDistance() {

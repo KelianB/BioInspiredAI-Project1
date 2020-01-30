@@ -15,7 +15,7 @@ class Individual {
 
         float fitness();
         void mutate();
-        Individual makeOffspring(Individual ind);
+        Individual crossover(Individual ind);
 };
 
 #endif

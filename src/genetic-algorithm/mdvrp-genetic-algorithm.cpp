@@ -62,32 +62,78 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
     //this->population.getIndividuals()[0].mutation();
 }
 
+// Uses binary search to achieve O(log(n)) complexity
+int spinRouletteWheel(double cumulativeWeights[], double totalWeights, int popSize) {
+    double r = totalWeights * (rand() / (double) RAND_MAX);    
+    // Look for the index of the entry just above r:
+    int a = 0, b = popSize - 1;
+    while(b-a > 1) {
+        int mid = (a + b) / 2;
+        if(cumulativeWeights[mid] > r) b = mid;
+        else a = mid;
+    }
+    return a;
+}
+
 void MDVRPGeneticAlgorithm::solve() {
-    this->buildInitialPopulation(50);
+    const int POPULATION_SIZE = 50;
+    this->buildInitialPopulation(POPULATION_SIZE);
     cout << "\nFinished generating initial population.";
 
-    for(int i = 0; i < 10; i++) {
-        cout << "\nGeneration " << (i+1);
-        // Mutate
+    for(int i = 0; i < 500; i++) {
+        cout << "\n##### Generation " << (i+1) << " #####";
+        
+        // Implementation of roulette wheel selection with O(log2(n)) selection
+         
+        // Start by creating an array of cumulative weights: O(n)
+        double total = 0;
+        double cumulative [POPULATION_SIZE + 1];
+        cumulative[0] = 0;
         for(int j = 0; j < population.getIndividuals().size(); j++) {
-            population.getIndividuals()[j].mutation();
-            population.getIndividuals()[j].mutation();
-            population.getIndividuals()[j].mutation();
+            total += population.getIndividuals()[j].fitness();
+            cumulative[j+1] = total;
         }
-
-        //cout << "\nMutated";
+        
         // Make offspring
         vector<Individual> offsprings;
-        for(int j = 0; j < population.getIndividuals().size(); j++) {
-            int parentA = rand() % population.getIndividuals().size();
-            int parentB = rand() % population.getIndividuals().size();
+        /*for(int j = 0; j < population.getIndividuals().size() / 2; j++) {
+            int parentA = spinRouletteWheel(cumulative, total, POPULATION_SIZE);
+            int parentB = 0;
+            do {
+                parentB = spinRouletteWheel(cumulative, total, POPULATION_SIZE);
+            } while(parentB == parentA);
             offsprings.push_back(population.getIndividuals()[parentA].crossover(population.getIndividuals()[parentB]));
-            //offspring.push_back(population.getIndividuals()[parentB].crossover(population.getIndividuals()[parentA]));
+            offsprings.push_back(population.getIndividuals()[parentB].crossover(population.getIndividuals()[parentA]));
+        }*/
+        for(int j = 0; j < population.getIndividuals().size(); j++) {
+            if(rand() % 100 < 25) {   
+                int parentB = 0;
+                do {
+                    parentB = spinRouletteWheel(cumulative, total, POPULATION_SIZE);
+                } while(parentB == j);
+                offsprings.push_back(population.getIndividuals()[j].crossover(population.getIndividuals()[parentB]));
+            }
+            else
+                offsprings.push_back(population.getIndividuals()[j]);
         }
+
+
         //cout << "\nCreated offspring";
         population.insertIndividuals(offsprings);
         //cout << "\nInserted offspring";
 
-        cout << "\nBest distance: " << population.getIndividuals()[0].getTotalDistance();
+        // Mutate
+        for(int j = 0; j < population.getIndividuals().size(); j++) {
+            int numMutations = rand() % 3;
+            for(int m = 0; m < numMutations; m++)
+                population.getIndividuals()[j].mutation();
+        }
+        //cout << "\nMutated";
+    
+        cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
+        cout << "\nAverage distance: " << population.getAverageDistance();
     }
+    cout << "\n";
+    population.getFittestIndividual().print();
+    cout << "\n";
 }

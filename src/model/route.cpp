@@ -9,6 +9,7 @@ using namespace std;
 
 Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
     this->totalDistanceRequireUpdate = true;
+    this->totalDemandRequireUpdate = true;
 }
 
 bool Route::canInsertCustomer(int customerNumber, int position) {
@@ -47,11 +48,13 @@ bool Route::canAddCustomer(int customerNumber) {
 void Route::addCustomer(int customerNumber) {
     this->customers.push_back(customerNumber);
     this->totalDistanceRequireUpdate = true;
+    this->totalDemandRequireUpdate = true;
 }
 
 void Route::insertCustomer(int c, vector<int>::iterator pos){
     this->getCustomers().insert(pos, c);
     this->totalDistanceRequireUpdate = true;
+    this->totalDemandRequireUpdate = true;
 }
 
 bool Route::hasCustomer(int customerNumber) {
@@ -61,6 +64,8 @@ bool Route::hasCustomer(int customerNumber) {
 bool Route::removeCustomer(int customerNumber) {
     if(this->hasCustomer(customerNumber)) {
         customers.erase(std::find(getCustomers().begin(), getCustomers().end(), customerNumber));
+        this->totalDistanceRequireUpdate = true;
+        this->totalDemandRequireUpdate = true;
         return true;
     }
     return false;
@@ -69,7 +74,7 @@ bool Route::removeCustomer(int customerNumber) {
 void Route::setCustomers(vector<int> customerNumbers) {
     this->customers.clear();
     for(int i = 0; i < customerNumbers.size(); i++)
-        this->customers.push_back(customerNumbers[i]);
+        this->addCustomer(customerNumbers[i]);
 }
 
 float Route::getTotalDistance() {
@@ -94,14 +99,17 @@ float Route::getTotalDistance() {
 }
 
 int Route::getTotalDemand() {
-    // TODO: recalculate only if needed
-    int demand = 0;
-    if(this->customers.size() > 0) {
-        for(int i = 0; i < this->customers.size(); i++) {
-            int customerNumber = this->customers[i];
-            demand += this->problem.getCustomerByNumber(customerNumber).getDemand();
-        }
+    if(this->totalDemandRequireUpdate) {
+        int demand = 0;
+        if(this->customers.size() > 0) {
+            for(int i = 0; i < this->customers.size(); i++) {
+                int customerNumber = this->customers[i];
+                demand += this->problem.getCustomerByNumber(customerNumber).getDemand();
+            }
+        }   
+        this->totalDemand = demand;
+        this->totalDemandRequireUpdate = false; 
     }
-
-    return demand;
+    
+    return this->totalDemand;
 }

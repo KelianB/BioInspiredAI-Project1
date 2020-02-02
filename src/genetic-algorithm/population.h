@@ -17,6 +17,7 @@ class Population {
         vector<Individual> getIndividuals() {return individuals;};
         void addIndividual(Individual ind);
         void insertIndividuals(std::vector<Individual> inds);
+        double getAverageDistance();
 };
 
 #endif

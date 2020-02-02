@@ -18,7 +18,8 @@ class Route {
         bool totalDistanceRequireUpdate;
         float totalDistance;
 
-        void updateTotalDistance();
+        bool totalDemandRequireUpdate;
+        float totalDemand;
     public: 
         Route(MDVRP& problem, Depot dep);
 

@@ -63,10 +63,10 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
 }
 
 void MDVRPGeneticAlgorithm::solve() {
-    this->buildInitialPopulation(50);
+    this->buildInitialPopulation(1);
     cout << "\nFinished generating initial population.";
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 5; i++) {
         cout << "\nGeneration " << (i+1);
         // Mutate
         for(int j = 0; j < population.getIndividuals().size(); j++) {

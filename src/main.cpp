@@ -19,7 +19,7 @@ using namespace std;
 int main() {
     srand(time(NULL));
 
-    MDVRP problem("../../testing-data/p01");
+    MDVRP problem("../../testing-data/p23");
     MDVRPGeneticAlgorithm ga(problem); 
     ga.solve();
     cout << "\nDone";

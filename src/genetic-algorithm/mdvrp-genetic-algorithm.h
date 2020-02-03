@@ -8,6 +8,10 @@ class MDVRPGeneticAlgorithm {
     private:
         MDVRP& problem;
         Population population;
+
+        void mutate(vector<Individual>& individuals, float mutationRate);
+        vector<Individual> makeOffspring(int numOffsprings, float crossoverRate);
+        void insertOffspring();
     public:
         MDVRPGeneticAlgorithm(MDVRP& pb);
 

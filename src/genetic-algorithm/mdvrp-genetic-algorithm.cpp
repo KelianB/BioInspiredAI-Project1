@@ -55,13 +55,6 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
             //cout << "\Adding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
             //cout << " success";
             routes[route].addCustomer(customerNumber);
-
-            // Remove the customer from our local list
-            // customersRemaining.erase(std::find(customersRemaining.begin(), customersRemaining.end(), customer.getNumber()));
-
-            // Get the closest customer to this depot
-            //Customer closestCustomer = problem.getClosestCustomer(problem.getDepots()[randomDepotIndex], customersRemaining);
-            //Customer closestCustomer = problem.getCustomerByNumber(customersRemaining[rand() % customersRemaining.size()]);
         }
 
         pop.addIndividual(Individual(routes));
@@ -86,67 +79,29 @@ void MDVRPGeneticAlgorithm::solve() {
     this->buildInitialPopulation(POPULATION_SIZE);
     //std::cout << "\nFinished generating initial population." << " (best distance: " << population.getFittestIndividual().getTotalDistance() << ")";
 
-    int totalTime = 0, time1 = 0, time2 = 0, time3 = 0, time4 = 0;
+    int totalTime = 0, time1 = 0, time2 = 0, time3 = 0;
     vector<float> cumulative(POPULATION_SIZE + 1);
 
     for(int i = 0; i < GENERATIONS; i++) {  
         auto begin = chrono::high_resolution_clock::now();  
 
-        // Implementation of roulette wheel selection with O(log2(n)) selection
-        // Start by creating an array of cumulative weights: O(n)
-        float total = 0;
-        cumulative[0] = 0;
-        for(int j = 0; j < POPULATION_SIZE; j++) {
-            total += population.getIndividuals()[j].getFitness();        
-            cumulative[j+1] = total;
-        }
-        
+        // ### Make offspring
+        vector<Individual> offsprings = makeOffspring(POPULATION_SIZE, CROSSOVER_RATE);
+
         int dur1 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
         begin = chrono::high_resolution_clock::now();
 
-        // Make offspring
-        vector<Individual> offsprings;
-        for(int j = 0; j < POPULATION_SIZE; j++) {
-            // int parentA = roulettewheel::spin(cumulative, total);
-            if(random::gen() < CROSSOVER_RATE) {   
-                int parentB = 0;
-                do {
-                    parentB = roulettewheel::spin(cumulative, total);
-                } while(j == parentB);
-
-                if(random::gen() < 0.5)
-                    offsprings.push_back(population.getIndividuals()[j].crossover(population.getIndividuals()[parentB]));
-                else
-                    offsprings.push_back(population.getIndividuals()[parentB].crossover(population.getIndividuals()[j]));
-            }
-            else
-                offsprings.push_back(population.getIndividuals()[j]);
-        }
+        // ### Mutate
+        mutate(offsprings, MUTATION_RATE);
 
         int dur2 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
         begin = chrono::high_resolution_clock::now();
 
-        for(int j = 0; j < offsprings.size(); j++) {
-            float mutRate = MUTATION_RATE;
-            int numMutations = 0;
-            while(mutRate > 0) {
-                if(random::gen() < mutRate)
-                    numMutations++;
-                mutRate--;
-            }                
-            for(int m = 0; m < numMutations; m++)
-               offsprings[j].mutation();
-        }
-        
+        // ### Insert offsprings
+        population.insertIndividuals(offsprings, NUMBER_OF_ELITES);
+
         int dur3 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
         begin = chrono::high_resolution_clock::now();
-
-        //cout << "\nCreated offspring";
-        population.insertIndividuals(offsprings, NUMBER_OF_ELITES);
-        //cout << "\nInserted offspring";
-
-        int dur4 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();          
-        time1 += dur1; time2 += dur2; time3 += dur3; time4 += dur4; totalTime += dur1 + dur2 + dur3 + dur4;
     
         if(i % 1000 == 0) {
             std::cout << "\n##### Generation " << i << " #####";
@@ -157,13 +112,58 @@ void MDVRPGeneticAlgorithm::solve() {
         }
     }
     
-    std::cout << "\nTimes (ms): " << time1 << ", "<< time2 << ", "<< time3 << ", "<< time4 << ", "<< totalTime << ", ";
-    std::cout << "\nTime spent generating cumulative weights for roulette wheel selection: " << 100 * time1 / totalTime << " %";
-    std::cout << "\nTime spent generating offspring: " << 100 * time2 / totalTime << " %";
-    std::cout << "\nTime spent mutating: " << 100 * time3 / totalTime << " %";
-    std::cout << "\nTime spent inserting in population: " << 100 * time4 / totalTime << " %";
+    std::cout << "\nTimes (ms): " << time1 << ", "<< time2 << ", "<< time3 << ", " << ", "<< totalTime << ", ";
+    std::cout << "\nTime spent generating offspring: " << 100 * time1 / totalTime << " %";
+    std::cout << "\nTime spent mutating: " << 100 * time2 / totalTime << " %";
+    std::cout << "\nTime spent inserting in population: " << 100 * time3 / totalTime << " %";
 
     std::cout << "\n";
     std::cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
     std::cout << "\n";
+}
+
+vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float crossoverRate) {
+    // Implementation of roulette wheel selection with O(log2(n)) selection
+    // Start by creating an array of cumulative weights: O(n)
+    float total = 0;
+    vector<float> cumulative;
+    cumulative[0] = 0;
+    for(int j = 0; j < population.getIndividuals().size(); j++) {
+        total += population.getIndividuals()[j].getFitness();        
+        cumulative[j+1] = total;
+    }
+        
+    vector<Individual> offsprings;
+    for(int j = 0; j < numOffsprings; j++) {
+        // int parentA = roulettewheel::spin(cumulative, total);
+        if(random::gen() < crossoverRate) {   
+            int parentB = 0;
+            do {
+                parentB = roulettewheel::spin(cumulative, total);
+            } while(j == parentB);
+
+            if(random::gen() < 0.5)
+                offsprings.push_back(population.getIndividuals()[j].crossover(population.getIndividuals()[parentB]));
+            else
+                offsprings.push_back(population.getIndividuals()[parentB].crossover(population.getIndividuals()[j]));
+        }
+        else
+            offsprings.push_back(population.getIndividuals()[j]);
+    }
+    return offsprings;
+}
+
+void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutationRate) {
+    for(int j = 0; j < individuals.size(); j++) {
+        float mutRate = mutationRate;
+        int numMutations = 0;
+        while(mutRate > 0) {
+            if(random::gen() < mutRate)
+                numMutations++;
+            mutRate--;
+        }                
+        for(int m = 0; m < numMutations; m++)
+            individuals[j].mutation();
+    }
+
 }

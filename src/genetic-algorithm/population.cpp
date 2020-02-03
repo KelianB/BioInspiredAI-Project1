@@ -88,8 +88,6 @@ void Population::insertIndividuals(vector<Individual> inds, int numberOfElites) 
         cumulative.push_back(total);
     }
 
-    vector<Individual> filtered;
-
     sort(individuals.begin(), individuals.end());
     individuals.erase(individuals.begin(), individuals.end() - numberOfElites); 
 

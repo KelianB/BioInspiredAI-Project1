@@ -8,7 +8,7 @@ using namespace std;
 // Uses binary search to achieve O(log2(n)) complexity
 int roulettewheel::spin(vector<float> cumulativeWeights, float sumOfWeights) {
     int length = cumulativeWeights.size() - 1;
-    double r = sumOfWeights * random::gen();    
+    double r = sumOfWeights * rd::gen();    
     // Look for the index of the entry just above r:
     int a = 0, b = length - 1;
     while(b-a > 1) {

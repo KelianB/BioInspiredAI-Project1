@@ -58,8 +58,8 @@ void Individual::mutation() {
 	bool done = false;
 	do {
         if(debug) cout << "\n[Mutation] Attempting mutation.";
-        int routeIndexA = random::gen(this->routes.size());
-        int routeIndexB = random::gen(this->routes.size());
+        int routeIndexA = rd::gen(this->routes.size());
+        int routeIndexB = rd::gen(this->routes.size());
 		//int routeIndexA = roulettewheel::spin(cumulative, total);
         //int routeIndexB = roulettewheel::spin(cumulative, total);
         Route* randomRouteA = &this->routes[routeIndexA]; // choose a random route
@@ -70,20 +70,20 @@ void Individual::mutation() {
  		// If exactly one of the routes is empty
 		if (routeASize == 0 && routeBSize != 0) { 
 			if(debug) cout << "\n[Mutation] Route A is empty. Inserting customer B in route A";
-            int random_customer = randomRouteB->getCustomers()[random::gen(routeBSize)];
+            int random_customer = randomRouteB->getCustomers()[rd::gen(routeBSize)];
             done = tryCustomerMove(randomRouteB, randomRouteA, random_customer);
 		}
 		else if (routeASize != 0 && routeBSize == 0) {
             if(debug) cout << "\n[Mutation] Route B is empty. Inserting customer A in route B";
-			int random_customer = randomRouteA->getCustomers()[random::gen(routeASize)];
+			int random_customer = randomRouteA->getCustomers()[rd::gen(routeASize)];
 			done = tryCustomerMove(randomRouteA, randomRouteB, random_customer);
 		}
 		// If both routes are not empty
 		else if(routeASize != 0 && routeBSize != 0) {
             if(routeIndexA == routeIndexB && routeASize <= 2)
                 continue;
-            int customerA = randomRouteA->getCustomers()[random::gen(routeASize)];
-            int customerB = randomRouteB->getCustomers()[random::gen(routeBSize)];
+            int customerA = randomRouteA->getCustomers()[rd::gen(routeASize)];
+            int customerB = randomRouteB->getCustomers()[rd::gen(routeBSize)];
             //cout << "\n" << customerA << "," << customerB;
             vector<int>::iterator posOfA = std::find(randomRouteA->getCustomers().begin(), randomRouteA->getCustomers().end(), customerA);
             vector<int>::iterator posOfB = std::find(randomRouteB->getCustomers().begin(), randomRouteB->getCustomers().end(), customerB);
@@ -91,7 +91,7 @@ void Individual::mutation() {
             if(debug) cout << "\n[Mutation] Trying to move customer #" << customerB << " from route B to route A";
 			done = tryCustomerMove(randomRouteB, randomRouteA, customerB, posOfA);
         
-            if(!done || random::gen() < 0.5) {
+            if(!done || rd::gen() < 0.5) {
                 if(debug) cout << "\n[Mutation] Trying to move customer #" << customerA << " from route A to route B";
                 done = tryCustomerMove(randomRouteA, randomRouteB, customerA, posOfB) || done;
             }
@@ -125,8 +125,8 @@ Individual Individual::crossover(Individual parentB) {
     Individual offspring(routes);
 
     // "Choose an arbitrary part from the first parent"
-    int randomRouteIndex = random::gen(this->routes.size());
-    int numberOfRoutesToCopy = 1 + random::gen(this->routes.size() / 2); // copy between 1 and half of the routes 
+    int randomRouteIndex = rd::gen(this->routes.size());
+    int numberOfRoutesToCopy = 1 + rd::gen(this->routes.size() / 2); // copy between 1 and half of the routes 
     // "Copy this part into the child"
     vector<int> copiedCustomers;
     for(int i = 0; i < numberOfRoutesToCopy; i++) {
@@ -168,7 +168,7 @@ Individual Individual::crossover(Individual parentB) {
                 }
 
                 Route &r = offspring.getRoutes()[targetOffspringRouteIndex];
-                r.insertCustomer(customer, r.getCustomers().begin() + random::gen(r.getCustomers().size()));
+                r.insertCustomer(customer, r.getCustomers().begin() + rd::gen(r.getCustomers().size()));
                 //offspring.getRoutes()[targetOffspringRouteIndex].addCustomer(customer);
             } 
         }

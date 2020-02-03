@@ -1,7 +1,7 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
-namespace random {
+namespace rd {
     int gen(int max);
     float gen();
 }

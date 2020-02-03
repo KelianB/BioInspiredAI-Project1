@@ -17,7 +17,7 @@ $(EXECUTABLE): $(obj)
 
 	@mkdir -p "$(BUILD_DIR)"
 	@mkdir -p "$(BIN_DIR)"
-	$(CC) $(INC) -o $(EXECUTABLE) $^
+	$(CC) -Werror -static $(INC) -o $(EXECUTABLE) $^
 
 # Rule for creating build/ subdirectories
 $(BUILD_DIR)/%/:

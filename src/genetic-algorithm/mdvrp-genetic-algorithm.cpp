@@ -41,15 +41,15 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
             // Random route
             /*int route = 0;
             do {
-                route = random::gen(routes.size());
+                route = rd::gen(routes.size());
             } while(!routes[route].canAddCustomer(customerNumber));*/
         
             // Random route of closest depot
             int closestDepotNumber = problem.getClosestDepot(problem.getCustomerByNumber(customerNumber)).getNumber();
-            int route = (closestDepotNumber-1) * problem.getVehiclesPerDepot() + random::gen(problem.getVehiclesPerDepot());
+            int route = (closestDepotNumber-1) * problem.getVehiclesPerDepot() + rd::gen(problem.getVehiclesPerDepot());
             // Revert back to random if not possible
             while(!routes[route].canAddCustomer(customerNumber))
-                route = random::gen(routes.size());
+                route = rd::gen(routes.size());
         
             // Add customer to the route
             //cout << "\Adding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
@@ -136,13 +136,13 @@ vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float
     vector<Individual> offsprings;
     for(int j = 0; j < numOffsprings; j++) {
         // int parentA = roulettewheel::spin(cumulative, total);
-        if(random::gen() < crossoverRate) {   
+        if(rd::gen() < crossoverRate) {   
             int parentB = 0;
             do {
                 parentB = roulettewheel::spin(cumulative, total);
             } while(j == parentB);
 
-            if(random::gen() < 0.5)
+            if(rd::gen() < 0.5)
                 offsprings.push_back(population.getIndividuals()[j].crossover(population.getIndividuals()[parentB]));
             else
                 offsprings.push_back(population.getIndividuals()[parentB].crossover(population.getIndividuals()[j]));
@@ -158,7 +158,7 @@ void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutati
         float mutRate = mutationRate;
         int numMutations = 0;
         while(mutRate > 0) {
-            if(random::gen() < mutRate)
+            if(rd::gen() < mutRate)
                 numMutations++;
             mutRate--;
         }                

@@ -50,7 +50,7 @@ void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
             // Revert back to random if not possible
             while(!routes[route].canAddCustomer(customerNumber))
                 route = rd::gen(routes.size());
-        
+
             // Add customer to the route
             //cout << "\Adding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
             //cout << " success";
@@ -80,7 +80,6 @@ void MDVRPGeneticAlgorithm::solve() {
     //std::cout << "\nFinished generating initial population." << " (best distance: " << population.getFittestIndividual().getTotalDistance() << ")";
 
     int totalTime = 0, time1 = 0, time2 = 0, time3 = 0;
-    vector<float> cumulative(POPULATION_SIZE + 1);
 
     for(int i = 0; i < GENERATIONS; i++) {  
         auto begin = chrono::high_resolution_clock::now();  
@@ -101,8 +100,7 @@ void MDVRPGeneticAlgorithm::solve() {
         population.insertIndividuals(offsprings, NUMBER_OF_ELITES);
 
         int dur3 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
-        begin = chrono::high_resolution_clock::now();
-    
+        
         if(i % 1000 == 0) {
             std::cout << "\n##### Generation " << i << " #####";
             //std::cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
@@ -112,10 +110,10 @@ void MDVRPGeneticAlgorithm::solve() {
         }
     }
     
-    std::cout << "\nTimes (ms): " << time1 << ", "<< time2 << ", "<< time3 << ", " << ", "<< totalTime << ", ";
+    /*std::cout << "\nTimes (ms): " << time1 << ", "<< time2 << ", "<< time3 << ", " << ", "<< totalTime << ", ";
     std::cout << "\nTime spent generating offspring: " << 100 * time1 / totalTime << " %";
     std::cout << "\nTime spent mutating: " << 100 * time2 / totalTime << " %";
-    std::cout << "\nTime spent inserting in population: " << 100 * time3 / totalTime << " %";
+    std::cout << "\nTime spent inserting in population: " << 100 * time3 / totalTime << " %";*/
 
     std::cout << "\n";
     std::cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
@@ -126,7 +124,7 @@ vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float
     // Implementation of roulette wheel selection with O(log2(n)) selection
     // Start by creating an array of cumulative weights: O(n)
     float total = 0;
-    vector<float> cumulative;
+    vector<float> cumulative(population.getIndividuals().size() + 1);
     cumulative[0] = 0;
     for(int j = 0; j < population.getIndividuals().size(); j++) {
         total += population.getIndividuals()[j].getFitness();        

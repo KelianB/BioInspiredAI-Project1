@@ -14,13 +14,14 @@ obj = $(src:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/objs/%.o)
 
 # Rule for creating the executable
 $(EXECUTABLE): $(obj)
-	if not exist $(BUILD_DIR) @mkdir $(BUILD_DIR)
-	if not exist $(BIN_DIR) @mkdir $(subst /,\,$(BIN_DIR))
-	$(CC) -Werror -static $(INC) -o $(EXECUTABLE) $^
+
+	@mkdir -p "$(BUILD_DIR)"
+	@mkdir -p "$(BIN_DIR)"
+	$(CC) $(INC) -o $(EXECUTABLE) $^
 
 # Rule for creating build/ subdirectories
 $(BUILD_DIR)/%/:
-	if not exist $@ @mkdir $(subst /,\,$@)
+	@mkdir -p $@
 
 # Rule for compiling into object files (requires the .cpp and the directory)
 $(OBJECTS_DIR)/%.o : $(SRC_DIR)/%.cpp $(dir $(OBJECTS_DIR)/%/)

@@ -9,7 +9,9 @@ using namespace std;
 class Individual {
     private:
         vector<Route> routes;
-    
+
+        bool shouldRecalculateFitness;
+        float fitness;
     public:
         Individual(vector<Route> routes);
 
@@ -20,13 +22,13 @@ class Individual {
 
         Individual crossover(Individual ind);
 	    void mutation();
-        float fitness();
+        float getFitness();
 
         bool operator > (Individual& ind) {
-            return fitness() > ind.fitness();
+            return getFitness() > ind.getFitness();
         }
         bool operator < (Individual& ind) {
-            return fitness() < ind.fitness();
+            return getFitness() < ind.getFitness();
         }
 };
 

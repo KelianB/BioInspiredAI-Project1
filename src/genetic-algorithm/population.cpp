@@ -1,5 +1,6 @@
 #include <population.h>
-#include <bits/stdc++.h> 
+#include <roulette-wheel.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -12,20 +13,20 @@ void Population::addIndividual(Individual ind) {
 }
 
 bool fitnessComparator(Individual a, Individual b) {
-    return b.fitness() - a.fitness();
+    return b.getFitness() - a.getFitness();
 }
 
-void Population::insertIndividuals(vector<Individual> inds) {
+
+void Population::insertIndividuals(vector<Individual> inds, int numberOfElites) {
+    bool debug = false;
+    int popSize = this->getIndividuals().size();
+
     /**
      *  Fully fitness-based: add all then remove worse until we're back to the original population size
      */
 
-    /*bool debug = false;
-    
-    int popSize = this->getIndividuals().size();
-
     // Add all
-    for(int i = 0; i < inds.size(); i++)
+    /*for(int i = 0; i < inds.size(); i++)
         this->addIndividual(inds[i]);
 
     if(debug) {
@@ -59,28 +60,48 @@ void Population::insertIndividuals(vector<Individual> inds) {
     
     
     /**
-     *  Elitism strategy: keep 10 best parents and replace others with best of new individuals
+     *  Elitism strategy: keep best parents and replace others with best of new individuals
      */
 
-    int popSize = this->getIndividuals().size();
-    int parentsKept = 2;
-
     // Sort by ascending fitness
-    sort(individuals.begin(), individuals.end());
+    /*sort(individuals.begin(), individuals.end());
     // Erase individuals except top 10
-    individuals.erase(individuals.begin(), individuals.begin() + popSize - parentsKept); 
+    individuals.erase(individuals.begin(), individuals.begin() + popSize - numberOfElites); 
     // Sort new individuals by ascending fitness
     sort(inds.begin(), inds.end());
     // Add best new individuals
-    for(int i = parentsKept; i < inds.size(); i++)
-        this->addIndividual(inds[i]);
+    for(int i = numberOfElites; i < inds.size(); i++)
+        this->addIndividual(inds[i]);*/
+
+    vector<Individual> everyone;
+
+    for(int i = 0; i < individuals.size(); i++)
+        everyone.push_back(individuals[i]);
+    for(int i = 0; i < inds.size(); i++)
+        everyone.push_back(inds[i]);
+
+    double total = 0;
+    vector<float> cumulative;
+    cumulative.push_back(0);
+    for(int j = 0; j < everyone.size(); j++) {
+        total += everyone[j].getFitness();        
+        cumulative.push_back(total);
+    }
+
+    vector<Individual> filtered;
+
+    sort(individuals.begin(), individuals.end());
+    individuals.erase(individuals.begin(), individuals.end() - numberOfElites); 
+
+    for(int i = 0; i < popSize - numberOfElites; i++)
+        this->addIndividual(everyone[roulettewheel::spin(cumulative, total)]);
 }
 
 Individual Population::getFittestIndividual() {
     int bestIndex = 0;
     double bestFitness = 0;
     for(int i = 0; i < getIndividuals().size(); i++) {
-        double fitness = getIndividuals()[i].fitness();
+        double fitness = getIndividuals()[i].getFitness();
         if(fitness > bestFitness) {
             bestFitness = fitness;
             bestIndex = i;

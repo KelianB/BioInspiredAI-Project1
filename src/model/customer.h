@@ -1,6 +1,8 @@
 #ifndef CUSTOMER_H
 #define CUSTOMER_H
 
+#include <iostream>
+
 #include "locatable.h"
 
 class Customer : public Locatable { 

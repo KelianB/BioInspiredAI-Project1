@@ -5,7 +5,7 @@ OBJECTS_DIR = $(BUILD_DIR)/objs
 BIN_DIR =$(BUILD_DIR)/bin
 EXECUTABLE=$(BIN_DIR)/run.exe
 SRC_DIR=src
-INC=-Isrc/ -Isrc/model -Isrc/genetic-algorithm -Itesting-data
+INC=-Isrc/ -Isrc/model -Isrc/genetic-algorithm -Isrc/utils -Itesting-data
 
 ####################################
 
@@ -14,6 +14,7 @@ obj = $(src:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/objs/%.o)
 
 # Rule for creating the executable
 $(EXECUTABLE): $(obj)
+
 	@mkdir -p "$(BUILD_DIR)"
 	@mkdir -p "$(BIN_DIR)"
 	$(CC) $(INC) -o $(EXECUTABLE) $^
@@ -24,8 +25,8 @@ $(BUILD_DIR)/%/:
 
 # Rule for compiling into object files (requires the .cpp and the directory)
 $(OBJECTS_DIR)/%.o : $(SRC_DIR)/%.cpp $(dir $(OBJECTS_DIR)/%/)
-	@echo Compiling: $< -> $@
-	$(CC) $(INC) -c $< -o $@
+	@echo "Compiling: $< -> $@
+	$(CC) -Werror -static $(INC) -c $< -o $@
 
 # Cleaner
 .PHONY: clean

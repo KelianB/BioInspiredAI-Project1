@@ -51,7 +51,7 @@ MDVRP::MDVRP(const char filePath[]) {
             }
             // Read depot definition
             else if(lineIndex <= numDepots) { 
-                depots.push_back(Depot(depots.size(), numbers[0], numbers[1]));  
+                depots.push_back(Depot(depots.size() + 1, numbers[0], numbers[1]));  
             }
             // Read customer definition
             else if(lineIndex <= numDepots + numCustomers) {
@@ -73,14 +73,20 @@ MDVRP::MDVRP(const char filePath[]) {
         cout << "\nSuccessfully parsed input data.\n";
         cout << "Number of customers: " << this->customers.size() << "\n";
         cout << "Number of depots: " << this->depots.size() << "\n";
+
+        this->distanceMatrix = this->buildDistanceMatrix();
     }
     else {
         cout << "Couldn't read file " << filePath << ".";
     }
 }
 
-Customer MDVRP::getCustomerByNumber(int number) {
+Customer& MDVRP::getCustomerByNumber(int number) {
     return getCustomers()[number - 1];
+}
+
+Depot& MDVRP::getDepotByNumber(int number) {
+    return getDepots()[number - 1];
 }
 
 Customer MDVRP::getClosestCustomer(Locatable locatable, vector<int> customerNumbers) {
@@ -96,4 +102,57 @@ Customer MDVRP::getClosestCustomer(Locatable locatable, vector<int> customerNumb
         }
     }
     return getCustomerByNumber(minNumber);
+}
+
+
+Depot& MDVRP::getClosestDepot(Customer c) {
+    float smallestDistance = 999999999;
+    int minNumber;
+
+    for(int i = 0; i < depots.size(); i++) {
+        float distance = getDistance(c, depots[i]); 
+        if(distance < smallestDistance) {
+            smallestDistance = distance;
+            minNumber = depots[i].getNumber();
+        }
+    }
+    return getDepotByNumber(minNumber);
+}
+
+
+float MDVRP::getDistance(Customer c, Depot d) {
+    return distanceMatrix[c.getNumber() - 1][customers.size() + d.getNumber() - 1];
+}
+float MDVRP::getDistance(Depot d, Customer c) {
+    return this->getDistance(c, d);
+}
+float MDVRP::getDistance(Customer a, Customer b) {
+    return distanceMatrix[a.getNumber() - 1][b.getNumber() - 1];
+}
+
+vector<vector<float>> MDVRP::buildDistanceMatrix() {
+    vector<vector<float>> matrix;
+    int numCustomers = this->getCustomers().size();
+    int numDepots = this->getDepots().size();
+
+    // Initialize a matrix of zeros
+    for(int i = 0; i < numCustomers; i++) {
+        vector<float> row;
+        for(int j = 0; j < numCustomers + numDepots; j++)
+            row.push_back(0);
+        matrix.push_back(row);
+    }
+
+    for(int i = 0; i < numCustomers; i++) {
+        Customer c = this->getCustomers()[i];
+        for(int j = 0; j < i; j++) {
+            float distance = c.distanceTo(this->getCustomers()[j]);
+            matrix[i][j] = distance;
+            matrix[j][i] = distance;
+        }
+        
+        for(int j = 0; j < numDepots; j++)
+            matrix[i][numCustomers + j] = c.distanceTo(this->getDepots()[j]);
+    }
+    return matrix;
 }

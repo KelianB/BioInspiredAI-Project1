@@ -14,9 +14,9 @@ class Population {
         Population();
  
         Individual getFittestIndividual();
-        vector<Individual> getIndividuals() {return individuals;};
+        vector<Individual>& getIndividuals() {return individuals;};
         void addIndividual(Individual ind);
-        void insertIndividuals(std::vector<Individual> inds);
+        void insertIndividuals(std::vector<Individual> inds, int numberOfElites);
         double getAverageDistance();
 };
 

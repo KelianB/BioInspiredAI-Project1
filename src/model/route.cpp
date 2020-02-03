@@ -8,8 +8,8 @@
 using namespace std;
 
 Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
-    this->totalDistanceRequireUpdate = true;
-    this->totalDemandRequireUpdate = true;
+    this->totalDemand = 0;
+    this->totalDistance = 0;
 }
 
 bool Route::canInsertCustomer(int customerNumber, int position) {
@@ -18,7 +18,7 @@ bool Route::canInsertCustomer(int customerNumber, int position) {
         return false;
     }
 
-    Customer c = problem.getCustomerByNumber(customerNumber);
+    Customer& c = problem.getCustomerByNumber(customerNumber);
 
     // capacity limit: the total demand of the customers on any route does not exceed a vehicle’s capacity.
     bool capacityCriterion = this->getTotalDemand() + c.getDemand() <= depot.getMaxVehicleLoad();
@@ -48,13 +48,13 @@ bool Route::canAddCustomer(int customerNumber) {
 void Route::addCustomer(int customerNumber) {
     this->customers.push_back(customerNumber);
     this->totalDistanceRequireUpdate = true;
-    this->totalDemandRequireUpdate = true;
+    this->totalDemand += problem.getCustomerByNumber(customerNumber).getDemand();
 }
 
 void Route::insertCustomer(int c, vector<int>::iterator pos){
-    this->getCustomers().insert(pos, c);
+    this->customers.insert(pos, c);
     this->totalDistanceRequireUpdate = true;
-    this->totalDemandRequireUpdate = true;
+    this->totalDemand += problem.getCustomerByNumber(c).getDemand();
 }
 
 bool Route::hasCustomer(int customerNumber) {
@@ -65,7 +65,7 @@ bool Route::removeCustomer(int customerNumber) {
     if(this->hasCustomer(customerNumber)) {
         customers.erase(std::find(getCustomers().begin(), getCustomers().end(), customerNumber));
         this->totalDistanceRequireUpdate = true;
-        this->totalDemandRequireUpdate = true;
+        this->totalDemand -= problem.getCustomerByNumber(customerNumber).getDemand();
         return true;
     }
     return false;
@@ -75,6 +75,7 @@ void Route::setCustomers(vector<int> customerNumbers) {
     this->customers.clear();
     for(int i = 0; i < customerNumbers.size(); i++)
         this->addCustomer(customerNumbers[i]);
+    this->totalDemandRequireUpdate = true;
 }
 
 float Route::getTotalDistance() {
@@ -83,13 +84,14 @@ float Route::getTotalDistance() {
         if(this->customers.size() == 0)
             this->totalDistance = 0;
         else {
-            float distance = this->getDepot().distanceTo(this->problem.getCustomers()[0]);
+            float distance = problem.getDistance(this->getDepot(), problem.getCustomerByNumber(this->customers[0]));
             for(int i = 0; i < this->customers.size() - 1; i++) {
                 int customerNumber = this->customers[i];
                 int nextCustomerNumber = this->customers[i+1];
-                distance += this->problem.getCustomerByNumber(customerNumber).distanceTo(this->problem.getCustomerByNumber(i+1));
+                distance += problem.getDistance(this->problem.getCustomerByNumber(customerNumber), 
+                    this->problem.getCustomerByNumber(nextCustomerNumber));
             }
-            distance += this->problem.getCustomerByNumber(this->customers[this->customers.size() - 1]).distanceTo(this->getDepot());
+            distance += problem.getDistance(problem.getCustomerByNumber(this->customers[this->customers.size() - 1]), this->getDepot());
             this->totalDistance = distance;
         }
         this->totalDistanceRequireUpdate = false;
@@ -100,13 +102,9 @@ float Route::getTotalDistance() {
 
 int Route::getTotalDemand() {
     if(this->totalDemandRequireUpdate) {
-        int demand = 0;
-        if(this->customers.size() > 0) {
-            for(int i = 0; i < this->customers.size(); i++) {
-                int customerNumber = this->customers[i];
-                demand += this->problem.getCustomerByNumber(customerNumber).getDemand();
-            }
-        }   
+        int demand = 0; 
+        for(int i = 0; i < this->customers.size(); i++)
+            demand += this->problem.getCustomerByNumber(this->customers[i]).getDemand();
         this->totalDemand = demand;
         this->totalDemandRequireUpdate = false; 
     }

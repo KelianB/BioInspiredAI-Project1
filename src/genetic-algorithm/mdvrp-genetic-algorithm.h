@@ -7,7 +7,7 @@
 class MDVRPGeneticAlgorithm {
     private:
         MDVRP& problem;
-        Population population;    
+        Population population;
     public:
         MDVRPGeneticAlgorithm(MDVRP& pb);
 

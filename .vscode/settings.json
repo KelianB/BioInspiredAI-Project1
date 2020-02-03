@@ -41,6 +41,19 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp",
+        "thread": "cpp",
+        "functional": "cpp",
+        "xthread": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp",
+        "atomic": "cpp",
+        "condition_variable": "cpp",
+        "future": "cpp",
+        "mutex": "cpp",
+        "shared_mutex": "cpp",
+        "random": "cpp"
     }
 }

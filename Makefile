@@ -5,7 +5,7 @@ OBJECTS_DIR = $(BUILD_DIR)/objs
 BIN_DIR =$(BUILD_DIR)/bin
 EXECUTABLE=$(BIN_DIR)/run.exe
 SRC_DIR=src
-INC=-Isrc/ -Isrc/model -Isrc/genetic-algorithm -Itesting-data
+INC=-Isrc/ -Isrc/model -Isrc/genetic-algorithm -Isrc/utils -Itesting-data
 
 ####################################
 
@@ -16,7 +16,7 @@ obj = $(src:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/objs/%.o)
 $(EXECUTABLE): $(obj)
 	if not exist $(BUILD_DIR) @mkdir $(BUILD_DIR)
 	if not exist $(BIN_DIR) @mkdir $(subst /,\,$(BIN_DIR))
-	$(CC) $(INC) -o $(EXECUTABLE) $^
+	$(CC) -Werror -static $(INC) -o $(EXECUTABLE) $^
 
 # Rule for creating build/ subdirectories
 $(BUILD_DIR)/%/:
@@ -25,7 +25,7 @@ $(BUILD_DIR)/%/:
 # Rule for compiling into object files (requires the .cpp and the directory)
 $(OBJECTS_DIR)/%.o : $(SRC_DIR)/%.cpp $(dir $(OBJECTS_DIR)/%/)
 	@echo "Compiling: $< -> $@
-	$(CC) $(INC) -c $< -o $@
+	$(CC) -Werror -static $(INC) -c $< -o $@
 
 # Cleaner
 .PHONY: clean

@@ -12,8 +12,8 @@
 
 using namespace std;
 
-MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP& pb): problem(pb) {
-
+MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP& pb, bool printProgress): problem(pb) {
+    this->printProgress = printProgress;
 }
 
 Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) {
@@ -182,76 +182,70 @@ Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) 
     return Individual(routes);
 }
 
-void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
+const int PROGRESS_BAR_LENGTH = 30;
+void printProgressBar(float progress) {
+    int loaded = round(PROGRESS_BAR_LENGTH * progress);
+    cout << "\r[";
+    for(int j = 0; j < PROGRESS_BAR_LENGTH; j++)
+        cout << (j == loaded ? ">" : j > loaded ? ":" : "-");
+    cout << "]";
+}
+
+void MDVRPGeneticAlgorithm::buildInitialPopulation() {
     vector<int> customerNumbers;
     for(int n = 0; n < problem.getCustomers().size(); n++)
         customerNumbers.push_back(problem.getCustomers()[n].getNumber());
 
-    cout << "\nGenerating initial population...\n";
-    int loadingBars = 30;
-    for(int i = 0; i < populationSize; i++) {
-        // Progress bar display
-        int progress = round(loadingBars * i / (float) populationSize);
-        cout << "\r[";
-        for(int j = 0; j < loadingBars; j++)
-            cout << (j == progress ? ">" : j > progress ? ":" : "-");
-        cout << "]";
+    for(int i = 0; i < POPULATION_SIZE; i++) {
+        if(printProgress)
+            printProgressBar(i / (float) POPULATION_SIZE);
         // Add a new individual
         population.addIndividual(createIndividual(customerNumbers));
     }
-    
-    std::cout << "\rFinished generating initial population." << " (best distance: " << population.getFittestIndividual().getTotalDistance() << ")";
-    std::cout << "\nIllegal distance tolerance factor: " << problem.getDistanceToleranceFactor();
 }
 
-void MDVRPGeneticAlgorithm::solve() {
-    this->buildInitialPopulation(POPULATION_SIZE);
-    
-    int totalTime = 0, time1 = 0, time2 = 0, time3 = 0;
+void MDVRPGeneticAlgorithm::runGenerations(int num) {
+    if(population.getIndividuals().size() == 0) {
+        cout << "\nUnable to run GA generations without building the initial population first.";
+        return;
+    }
 
-    for(int i = 0; i < GENERATIONS; i++) {  
-        auto begin = chrono::high_resolution_clock::now();  
+    // int totalTime = 0, time1 = 0, time2 = 0, time3 = 0;
+    
+    if(printProgress)
+        cout << "\n";
+
+    for(int i = 0; i < num; i++) {  
+        if(printProgress && i % (num/PROGRESS_BAR_LENGTH) == 0)
+            printProgressBar(i / (float) num);
+        // auto begin = chrono::high_resolution_clock::now();  
 
         // ### Make offspring
         vector<Individual> offsprings = makeOffspring(POPULATION_SIZE, CROSSOVER_RATE);
 
-        int dur1 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
-        begin = chrono::high_resolution_clock::now();
+        // int dur1 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
+        // begin = chrono::high_resolution_clock::now();
 
         // ### Mutate
         mutate(offsprings, MUTATION_RATE);
 
-        int dur2 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
-        begin = chrono::high_resolution_clock::now();
+        // int dur2 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
+        // begin = chrono::high_resolution_clock::now();
 
         // ### Insert offsprings
         population.insertIndividuals(offsprings, NUMBER_OF_ELITES);
 
-        int dur3 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
+        // int dur3 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
         
-        // Print information
-        if(i % 1000 == 0) {
-            cout << "\n##### Generation " << i << " #####";
-            cout << " (overall best: " << population.getFittestIndividual().getTotalDistance() << ", legal best: ";
-            Individual* fittestLegal = population.getFittestLegalIndividual();
-            if(fittestLegal == nullptr)
-                cout << "none";
-            else
-                cout << fittestLegal->getTotalDistance();
-            cout << ", average distance: " << population.calculateAverageDistance();
-            cout << ", illegal routes: " << population.getNumberOfIllegalRoutes() << ")";
-        }
-
-        time1 += dur1; time2 += dur2; time3 += dur3; totalTime += dur1 + dur2 + dur3;
+        // time1 += dur1; time2 += dur2; time3 += dur3; totalTime += dur1 + dur2 + dur3;
     }
-    
-    std::cout << "\nTime spent generating offspring: " << time1 << " ms (" << 100 * time1 / totalTime << "%)";
-    std::cout << "\nTime spent mutating: " << time2 << "ms (" << 100 * time2 / totalTime << "%)";
-    std::cout << "\nTime spent inserting in population: " << time3 << " ms (" << 100 * time3 / totalTime << "%)";
 
-    std::cout << "\n";
-    std::cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
-    std::cout << "\n";
+    if(printProgress)
+        cout << "\r                                             ";
+    
+    /*std::cout << "\nTime spent generating offspring: " << time1 << " ms (" << 100 * time1 / totalTime << "%)";
+    std::cout << "\nTime spent mutating: " << time2 << "ms (" << 100 * time2 / totalTime << "%)";
+    std::cout << "\nTime spent inserting in population: " << time3 << " ms (" << 100 * time3 / totalTime << "%)";*/
 }
 
 vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float crossoverRate) {
@@ -299,5 +293,18 @@ void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutati
         for(int m = 0; m < numMutations; m++)
             individuals[j].mutate();
     }
+}
+
+void MDVRPGeneticAlgorithm::printState() {
+    //cout << "\n##### Generation " << i << " #####";
+    // TODO if terminated just print last distance
+
+    cout << "\nBest distance: overall = " << population.getFittestIndividual().getTotalDistance() << ", legal = ";
+    Individual* fittestLegal = population.getFittestLegalIndividual();
+    if(fittestLegal == nullptr) cout << "none";
+    else cout << fittestLegal->getTotalDistance();
+    cout << "\nAverage distance: " << population.calculateAverageDistance();
+    cout << "\nIllegal routes: " << population.getNumberOfIllegalRoutes() << ".";
+    cout << " Illegal individuals: " << population.getNumberOfIllegalIndividuals() << ".";
 
 }

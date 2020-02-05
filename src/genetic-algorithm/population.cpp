@@ -137,3 +137,12 @@ int Population::getNumberOfIllegalRoutes() {
     }
     return n;
 }
+
+int Population::getNumberOfIllegalIndividuals() {
+    int n = 0;
+    for(int i = 0; i < getIndividuals().size(); i++) {
+        if(!getIndividuals()[i].isLegal())
+            n++;
+    }
+    return n;
+}

@@ -23,6 +23,7 @@ class Population {
         float calculateAverageDistance();
         float calculateDistanceDeviation();
         
+        int getNumberOfIllegalIndividuals();
         int getNumberOfIllegalRoutes();
 };
 

@@ -38,22 +38,26 @@ void runGenerationsInParallel(vector<MDVRPGeneticAlgorithm>& geneticAlgorithms, 
 }
 
 void printAndSaveBest() {
-    // Find best GA
+    // Find best solution
     int bestIndex = 0;
-    float bestFitness = geneticAlgorithms[0].getPopulation().getFittestLegalIndividual()->getFitness();
-    for(int ga = 1; ga < geneticAlgorithms.size(); ga++) {
-        float fitness = geneticAlgorithms[ga].getPopulation().getFittestLegalIndividual()->getFitness();
-        if(fitness > bestFitness) {
-            bestFitness = fitness;
+    Individual* fittestLegal = nullptr;
+    for(int ga = 0; ga < geneticAlgorithms.size(); ga++) {
+        Individual* ind = geneticAlgorithms[ga].getPopulation().getFittestLegalIndividual(); 
+        if(ind != nullptr && (fittestLegal == nullptr || ind->getFitness() > fittestLegal->getFitness())) {
             bestIndex = ga;
+            fittestLegal = ind;
         }
     }
-    
-    cout << "\nBest distance obtained: ";
-    cout << geneticAlgorithms[bestIndex].getPopulation().getFittestLegalIndividual()->getTotalDistance();
-    cout << " (after " << geneticAlgorithms[bestIndex].getGenerationsRan() << " generations).";
 
-    geneticAlgorithms[bestIndex].outputFile();
+    if(fittestLegal != nullptr) {
+        cout << "\nBest distance obtained: ";
+        cout << fittestLegal->getTotalDistance();
+        cout << " (after " << geneticAlgorithms[bestIndex].getGenerationsRan() << " generations).";
+        
+        geneticAlgorithms[bestIndex].outputFile();
+    }
+    else
+        cout << "\nTerminated with no legal solutions.";
 }
 
 int main(int argc, char *argv[]) {
@@ -71,7 +75,6 @@ int main(int argc, char *argv[]) {
     MDVRP problem((DATA_DIR + inputProblem).c_str(), inputProblem);
     
     // Initialize GAs
-
     for(int i = 0; i < NUM_THREADS; i++)
         geneticAlgorithms.push_back(MDVRPGeneticAlgorithm(problem, i==0));
 
@@ -103,8 +106,7 @@ int main(int argc, char *argv[]) {
         step++;
     }
 
-    // Find best GA
     cout << "\n\n" << SEPARATOR << "\n\nAll GAs were terminated.\n";
 
-    return 1;
+    return 0;
 }

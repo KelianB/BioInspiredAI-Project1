@@ -13,11 +13,17 @@ class Population {
     public:
         Population();
  
-        Individual getFittestIndividual();
+        Individual& getFittestIndividual();
+        Individual* getFittestLegalIndividual();
         vector<Individual>& getIndividuals() {return individuals;};
+        
         void addIndividual(Individual ind);
         void insertIndividuals(std::vector<Individual> inds, int numberOfElites);
-        double getAverageDistance();
+        
+        float calculateAverageDistance();
+        float calculateDistanceDeviation();
+        
+        int getNumberOfIllegalRoutes();
 };
 
 #endif

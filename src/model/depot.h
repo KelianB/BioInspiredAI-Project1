@@ -11,9 +11,9 @@ class Depot : public Locatable {
         int number;
     public: 
         Depot(int nb, int mrd, int mvl): Locatable(0, 0) {
-            number = nb;
-            maxRouteDuration = mrd;
-            maxVehicleLoad = mvl;
+            this->number = nb;
+            this->maxRouteDuration = mrd;
+            this->maxVehicleLoad = mvl;
         }
 
         int getNumber() {return number;}

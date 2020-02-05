@@ -2,14 +2,45 @@
 #include "depot.h"
 #include "locatable.h"
 #include "mdvrp.h"
+
 #include <iostream>
 #include <algorithm>
 #include <bits/stdc++.h>
+
 using namespace std;
 
-Route::Route(MDVRP& pb, Depot dep): depot(dep), problem(pb) {
+Route::Route(MDVRP& pb, Depot& dep): depot(dep), problem(pb) {
     this->totalDemand = 0;
     this->totalDistance = 0;
+}
+
+float Route::getAddedDistanceOfInsert(int customerNumber, int position) {
+    if(position < 0 || position > this->customers.size()) {
+        cout << "\n invalid position " << position;
+        return 99999999;
+    }
+
+    Customer& c = problem.getCustomerByNumber(customerNumber);
+
+    float distanceToPrevious = position == 0 ?
+        problem.getDistance(depot, c) :
+        problem.getDistance(problem.getCustomerByNumber(customers[position - 1]), c);
+
+    float distanceToNext = position == customers.size() ?
+        problem.getDistance(c, depot) :
+        problem.getDistance(c, problem.getCustomerByNumber(customers[position]));
+
+    float distanceFromPreviousToNext;
+    if(position == 0 && customers.size() == 0)
+        distanceFromPreviousToNext = 0; 
+    else {      
+        distanceFromPreviousToNext = 
+            position == 0 ? problem.getDistance(depot, problem.getCustomerByNumber(customers[position])) :
+            position == customers.size() ? problem.getDistance(problem.getCustomerByNumber(customers[position-1]), depot) :
+            problem.getDistance(problem.getCustomerByNumber(customers[position-1]), problem.getCustomerByNumber(customers[position]));
+    }
+
+    return distanceToPrevious + distanceToNext - distanceFromPreviousToNext;
 }
 
 bool Route::canInsertCustomer(int customerNumber, int position) {
@@ -27,15 +58,48 @@ bool Route::canInsertCustomer(int customerNumber, int position) {
 
     // route limit: the total duration of a route does not exceed a preset value (ignore criterion if value is 0)
     if(depot.getMaxRouteDuration() != 0) {
-        Locatable previous = (position == 0 ? 
-            static_cast<Locatable const &>(depot) : 
-            problem.getCustomerByNumber(customers[position - 1]));
-        Locatable next = (position == customers.size() ? 
-            static_cast<Locatable const &>(depot) : 
-            problem.getCustomerByNumber(customers[position]));
-        float distanceDelta = previous.distanceTo(c) + c.distanceTo(next) - previous.distanceTo(next);
+        bool routeDurationCriterion = this->getTotalDistance() + this->getAddedDistanceOfInsert(customerNumber, position) <= depot.getMaxRouteDuration() * problem.getDistanceToleranceFactor();
+        return routeDurationCriterion;
+    }
+    return true;
+}
 
-        bool routeDurationCriterion = this->getTotalDistance() + distanceDelta <= depot.getMaxRouteDuration();
+
+bool Route::canReplaceCustomer(int customerNumber, int position) {
+    if(position < 0 || position > this->customers.size() - 1) {
+        cout << "\n invalid position " << position;
+        return false;
+    }
+
+    Customer& replaced = problem.getCustomerByNumber(customers[position]);
+    Customer& c = problem.getCustomerByNumber(customerNumber);
+
+    // capacity limit: the total demand of the customers on any route does not exceed a vehicle’s capacity.
+    bool capacityCriterion = this->getTotalDemand() - replaced.getDemand() + c.getDemand() <= depot.getMaxVehicleLoad();
+    if(!capacityCriterion)
+        return false;
+
+    // route limit: the total duration of a route does not exceed a preset value (ignore criterion if value is 0)
+    if(depot.getMaxRouteDuration() != 0) {
+        float distanceToPrevious = position == 0 ?
+            problem.getDistance(depot, c) :
+            problem.getDistance(problem.getCustomerByNumber(customers[position - 1]), c);
+
+        float distanceToNext = position == customers.size() - 1 ?
+            problem.getDistance(c, depot) :
+            problem.getDistance(c, problem.getCustomerByNumber(customers[position + 1]));
+
+        float distanceReplacedToPrevious = position == 0 ?
+            problem.getDistance(depot, replaced) :
+            problem.getDistance(problem.getCustomerByNumber(customers[position - 1]), replaced);
+
+        float distanceReplacedToNext = position == customers.size() - 1 ?
+            problem.getDistance(replaced, depot) :
+            problem.getDistance(replaced, problem.getCustomerByNumber(customers[position + 1]));
+
+        float distanceDelta = distanceToPrevious + distanceToNext - distanceReplacedToPrevious - distanceReplacedToNext;
+
+        bool routeDurationCriterion = this->getTotalDistance() + distanceDelta <= depot.getMaxRouteDuration() * problem.getDistanceToleranceFactor();
         return routeDurationCriterion;
     }
     return true;
@@ -51,10 +115,15 @@ void Route::addCustomer(int customerNumber) {
     this->totalDemand += problem.getCustomerByNumber(customerNumber).getDemand();
 }
 
-void Route::insertCustomer(int c, vector<int>::iterator pos){
+void Route::insertCustomer(int c, vector<int>::iterator pos) {
     this->customers.insert(pos, c);
     this->totalDistanceRequireUpdate = true;
     this->totalDemand += problem.getCustomerByNumber(c).getDemand();
+}
+
+void Route::reverseCustomers(int beginIndex, int endIndex) {
+    reverse(customers.begin() + beginIndex, customers.begin() + endIndex + 1);
+    this->totalDistanceRequireUpdate = true;
 }
 
 bool Route::hasCustomer(int customerNumber) {
@@ -110,4 +179,9 @@ int Route::getTotalDemand() {
     }
     
     return this->totalDemand;
+}
+
+bool Route::isLegal() {
+    return this->getTotalDemand() <= depot.getMaxVehicleLoad() &&  
+        (depot.getMaxRouteDuration() == 0 || this->getTotalDistance() <= depot.getMaxRouteDuration());
 }

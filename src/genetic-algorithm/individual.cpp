@@ -9,10 +9,9 @@
 
 using namespace std;
 
-
 Individual::Individual(vector<Route> routes) {
     this->routes = routes;
-    this->shouldRecalculateFitness = true;
+    this->shouldUpdateFitness = true;
 }
 
 float Individual::getTotalDistance() {
@@ -23,15 +22,41 @@ float Individual::getTotalDistance() {
 }
 
 float Individual::getFitness() {
-    if(this->shouldRecalculateFitness) {
-        this->fitness = pow(1 / getTotalDistance(), 3);
-        this->shouldRecalculateFitness = false;
+    // Update only when required (saves about 88% of fitness computation)
+    if(this->shouldUpdateFitness) {
+        float dist = 0;
+        for(int i = 0; i < routes.size(); i++) {
+            dist += routes[i].getTotalDistance();
+
+            // Add a penalty when the distance is above the maximum allowed
+            float distanceOverflow = routes[i].getTotalDistance() - routes[i].getDepot().getMaxRouteDuration();
+            if(distanceOverflow > 0)
+                dist += 100 * distanceOverflow;
+        }
+        this->shouldUpdateFitness = false;
+        this->fitness = 1 / pow(dist, 3);
     }
+
     return this->fitness;
 }
 
+bool tryCustomerSwap(Route* routeA, Route* routeB, int customerA, int customerB) {
+    vector<int>::iterator posOfA = std::find(routeA->getCustomers().begin(), routeA->getCustomers().end(), customerA);
+    vector<int>::iterator posOfB = std::find(routeB->getCustomers().begin(), routeB->getCustomers().end(), customerB);
+
+    if(routeA->canReplaceCustomer(customerB, posOfA - routeA->getCustomers().begin()) && 
+        routeB->canReplaceCustomer(customerA, posOfB - routeB->getCustomers().begin())) {
+        routeA->removeCustomer(customerA);
+        routeA->insertCustomer(customerB, posOfA);
+        routeB->removeCustomer(customerB);
+        routeB->insertCustomer(customerA, posOfB);
+        return true;
+    }
+    return false;
+}
+
 bool tryCustomerMove(Route* from, Route* to, int customerNumber, vector<int>::iterator positionInDestination) {
-    if (to->canInsertCustomer(customerNumber, positionInDestination - to->getCustomers().begin())) {
+    if(to->canInsertCustomer(customerNumber, positionInDestination - to->getCustomers().begin())) {
         from->removeCustomer(customerNumber);
         to->insertCustomer(customerNumber, positionInDestination);
         return true;
@@ -43,8 +68,7 @@ bool tryCustomerMove(Route* from, Route* to, int customerNumber) {
     return tryCustomerMove(from, to, customerNumber, to->getCustomers().end());
 }
 
-
-void Individual::mutation() {
+void Individual::mutationSwap() {
     bool debug = false;
 
     /*double total = 0;
@@ -57,11 +81,40 @@ void Individual::mutation() {
 
 	bool done = false;
 	do {
-        if(debug) cout << "\n[Mutation] Attempting mutation.";
+        if(debug) cout << "\n[Mutation] Attempting swap mutation.";
         int routeIndexA = rd::gen(this->routes.size());
         int routeIndexB = rd::gen(this->routes.size());
 		//int routeIndexA = roulettewheel::spin(cumulative, total);
         //int routeIndexB = roulettewheel::spin(cumulative, total);
+        Route* randomRouteA = &this->routes[routeIndexA]; // choose a random route
+		Route* randomRouteB = &this->routes[routeIndexB]; // choose a random route
+        int routeASize = randomRouteA->getCustomers().size(), routeBSize = randomRouteB->getCustomers().size();
+        if(debug) cout << "\n[Mutation] Routes chosen (A: " << routeIndexA << ", B: " << routeIndexB << ")";
+		// If both routes are not empty
+		if(routeASize != 0 && routeBSize != 0) {
+            if(routeIndexA == routeIndexB && routeASize <= 2) // Avoid useless mutations
+                continue;
+            int customerA = randomRouteA->getCustomers()[rd::gen(routeASize)];
+            int customerB = randomRouteB->getCustomers()[rd::gen(routeBSize)];
+            
+            if(debug) cout << "\n[Mutation] Trying to swap customer #" << customerA << " from route A with customer #" << customerB << " from route B .";
+			done = tryCustomerSwap(randomRouteA, randomRouteB, customerA, customerB);
+		}
+	}
+	while (!done);
+
+    this->shouldUpdateFitness = true;
+
+    if(debug) cout << "\n[Mutation] FINISHED";
+}
+
+void Individual::mutationMove() {
+    bool debug = false;
+	bool done = false;
+	do {
+        if(debug) cout << "\n[Mutation] Attempting move mutation.";
+        int routeIndexA = rd::gen(this->routes.size());
+        int routeIndexB = rd::gen(this->routes.size());
         Route* randomRouteA = &this->routes[routeIndexA]; // choose a random route
 		Route* randomRouteB = &this->routes[routeIndexB]; // choose a random route
         int routeASize = randomRouteA->getCustomers().size();
@@ -83,23 +136,67 @@ void Individual::mutation() {
             if(routeIndexA == routeIndexB && routeASize <= 2)
                 continue;
             int customerA = randomRouteA->getCustomers()[rd::gen(routeASize)];
-            int customerB = randomRouteB->getCustomers()[rd::gen(routeBSize)];
-            //cout << "\n" << customerA << "," << customerB;
-            vector<int>::iterator posOfA = std::find(randomRouteA->getCustomers().begin(), randomRouteA->getCustomers().end(), customerA);
-            vector<int>::iterator posOfB = std::find(randomRouteB->getCustomers().begin(), randomRouteB->getCustomers().end(), customerB);
-
-            if(debug) cout << "\n[Mutation] Trying to move customer #" << customerB << " from route B to route A";
-			done = tryCustomerMove(randomRouteB, randomRouteA, customerB, posOfA);
-        
-            if(!done || rd::gen() < 0.5) {
-                if(debug) cout << "\n[Mutation] Trying to move customer #" << customerA << " from route A to route B";
-                done = tryCustomerMove(randomRouteA, randomRouteB, customerA, posOfB) || done;
-            }
+            int randomPos = rd::gen(routeBSize);
+            
+            if(debug) cout << "\n[Mutation] Trying to move customer #" << customerA << " from route A to route B";
+			done = tryCustomerMove(randomRouteA, randomRouteB, customerA, randomRouteB->getCustomers().begin() + randomPos);
 		}
 	}
 	while (!done);
-    this->shouldRecalculateFitness = true;
+
+    this->shouldUpdateFitness = true;
+
     if(debug) cout << "\n[Mutation] FINISHED";
+}
+
+void Individual::mutationInversion() {
+    bool debug = false;
+    bool done = false;
+
+    while(!done) {
+        Route& route = getRoutes()[rd::gen(getRoutes().size())];
+        int startIndex = rd::gen(route.getCustomers().size());
+        int endIndex = rd::gen(route.getCustomers().size());
+        if(startIndex == endIndex)
+            continue;
+        
+        if(endIndex < startIndex) {
+            int temp = endIndex;
+            endIndex = startIndex;
+            startIndex = temp;
+        }
+
+        if(debug) {
+            cout << "\n" << startIndex  << "<-->" << endIndex;
+            cout << "\n";
+            for(int i = 0; i < route.getCustomers().size(); i++)
+                cout << route.getCustomers()[i] << ",";
+        }
+
+        // TODO Check if possible
+        route.reverseCustomers(startIndex, endIndex);
+        
+        if(debug) {
+            cout << "\n";
+            for(int i = 0; i < route.getCustomers().size(); i++)
+                cout << route.getCustomers()[i] << ",";
+        }
+        done = true;
+    }
+
+    this->shouldUpdateFitness = true;
+}
+
+void Individual::mutate() {
+    bool debug = false;
+    float rand = rd::gen();
+    if(rand < 0.33)
+        mutationMove();
+    else if(rand < 0.66)
+        mutationSwap();
+    else
+        mutationInversion();
+
 }
 
 void Individual::print() {
@@ -114,8 +211,7 @@ void Individual::print() {
 Individual Individual::crossover(Individual parentB) {
     bool debug = false;
     if(debug) {
-        cout << "\n\n";
-        cout << "\n[CROSSOVER]";
+        cout << "\n\n[CROSSOVER]";
         cout << "\nParent A:\n";
         print();
         cout << "\nParent B:\n";
@@ -126,7 +222,7 @@ Individual Individual::crossover(Individual parentB) {
 
     // "Choose an arbitrary part from the first parent"
     int randomRouteIndex = rd::gen(this->routes.size());
-    int numberOfRoutesToCopy = 1 + rd::gen(this->routes.size() / 2); // copy between 1 and half of the routes 
+    int numberOfRoutesToCopy = 1 /*+ rd::gen(this->routes.size() / 2)*/; // copy between 1 and half of the routes 
     // "Copy this part into the child"
     vector<int> copiedCustomers;
     for(int i = 0; i < numberOfRoutesToCopy; i++) {
@@ -178,8 +274,6 @@ Individual Individual::crossover(Individual parentB) {
         }
     }
 
-    offspring.shouldRecalculateFitness = true;
-
     if(debug) {
         cout << "\nOffspring:\n";
         offspring.print();
@@ -187,5 +281,15 @@ Individual Individual::crossover(Individual parentB) {
         parentB.print();
     }
 
+    offspring.shouldUpdateFitness = true;
+
     return offspring;
+}
+
+bool Individual::isLegal() {
+    for(int i = 0; i < routes.size(); i++) {
+        if(!routes[i].isLegal())
+            return false;
+    }
+    return true;
 }

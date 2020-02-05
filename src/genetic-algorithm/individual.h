@@ -10,20 +10,26 @@ class Individual {
     private:
         vector<Route> routes;
 
-        bool shouldRecalculateFitness;
+        void mutationSwap();
+        void mutationMove();
+        void mutationInversion();
+
         float fitness;
+        bool shouldUpdateFitness;
     public:
         Individual(vector<Route> routes);
 
-        float getTotalDistance();
-        vector<Route>& getRoutes() {return routes;};
-
+        Individual crossover(Individual ind);
+	    void mutate();
         void print();
 
-        Individual crossover(Individual ind);
-	    void mutation();
         float getFitness();
+        float getTotalDistance();
+        bool isLegal();
 
+        vector<Route>& getRoutes() {return routes;};
+
+        // Comparators
         bool operator > (Individual& ind) {
             return getFitness() > ind.getFitness();
         }

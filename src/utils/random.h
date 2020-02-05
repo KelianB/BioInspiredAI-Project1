@@ -4,6 +4,7 @@
 namespace rd {
     int gen(int max);
     float gen();
+    int getThreadSafeSeed();
 }
 
 #endif

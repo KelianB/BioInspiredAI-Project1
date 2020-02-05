@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <list>
 #include <chrono>
+#include <random>
+#include <thread>
 
 using namespace std;
 
@@ -14,71 +16,197 @@ MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP& pb): problem(pb) {
 
 }
 
-void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
-    Population pop;
+Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) {
+    // Initialize empty routes
+    vector<Route> routes = vector<Route>();
+    for(int d = 0; d < problem.getDepots().size(); d++) {
+        for(int v = 0; v < problem.getVehiclesPerDepot(); v++)
+            routes.push_back(Route(problem, problem.getDepots()[d]));
+    }
     
+    // Shuffle the customers - helps ensuring that our individual is not created in a deterministic way
+    std::shuffle(customerNumbers.begin(), customerNumbers.end(), std::default_random_engine(rd::getThreadSafeSeed()));    
+
+    // We iterate over all the customers and try to assign them to a route one by one
+    for(int i = 0; i < customerNumbers.size(); i++) {
+        int customerNumber = customerNumbers[i];
+        Customer& customer = problem.getCustomerByNumber(customerNumber);
+        Depot& closestDepot = problem.getClosestDepot(customer);
+        
+        // The first customer is simply assigned to the first route of its closest depot
+        if(i == 0) {
+            routes[(closestDepot.getNumber() - 1) * problem.getVehiclesPerDepot()].addCustomer(customerNumber);
+            continue;            
+        }
+
+        // Build a vector of "neigbours" (customers that were already assigned to a route), 
+        // which sorted by increasing distance to customer
+        vector<int> neighbours = vector<int>(customerNumbers.begin(), customerNumbers.begin() + i);
+        MDVRP &pb = problem;
+        sort(neighbours.begin(), neighbours.end(), [&pb, &customer](int a, int b) -> bool {
+            return pb.getDistance(pb.getCustomerByNumber(a), customer) < pb.getDistance(pb.getCustomerByNumber(b), customer);
+        });
+               
+        // Iterate over the neighbours (by ascending distance to customer)
+        int neighbourIdx = 0;
+        int maxClosestNeighbour = neighbours.size() < 10 ? neighbours.size() : 10;
+        bool done = false;
+        do {
+            int neighbourNum = neighbours[neighbourIdx];
+
+            // If customer is closer to its closest depot than to this neighbour, try to assign it to an empty route of the depot
+            if(problem.getDistance(customer, closestDepot) < problem.getDistance(customer, problem.getCustomerByNumber(neighbourNum))) {
+                int firstRouteOfDepot = (closestDepot.getNumber()-1) * problem.getVehiclesPerDepot();
+                int j = 0;
+                while(routes[firstRouteOfDepot + j].getCustomers().size() > 0 && j < problem.getVehiclesPerDepot()) {
+                    j++;
+                }
+                // Found an empty route
+                if(j != problem.getVehiclesPerDepot()) {
+                    routes[firstRouteOfDepot + j].addCustomer(customerNumber);
+                    done = true;
+                } 
+            }
+
+            if(!done) {
+                // Find neighbour's route
+                int route = 0;
+                while(route < routes.size() && !routes[route].hasCustomer(neighbourNum))
+                    route++;
+
+                // Random chance of going to another route
+                //while(rd::gen() < 0)
+                  //  route = (route + 1) % routes.size();
+
+
+                if(route == routes.size()) {
+                    // Critical error: the neighbour was never added to a route, which means there is was a problem before
+                    cout << "\nCritical error generating individual (neighbour should have been added to a route)\n";
+                }
+                else {
+                    // First, try to insert at a random position (this is just to add some randomness to our initialization)
+                    /*int randomPosition = rd::gen(routes[route].getCustomers().size());
+                    if(routes[route].canInsertCustomer(customerNumber, randomPosition)) {
+                        routes[route].insertCustomer(customerNumber, routes[route].getCustomers().begin() + randomPosition);
+                        done = true;
+                        continue;
+                    }                    
+                    else if(routes[route].hasCustomer(neighbourNum)) {
+                    */
+                        // Find the position of the neighbour within its route
+                        vector<int>::iterator insertionPos = find(routes[route].getCustomers().begin(), routes[route].getCustomers().end(), neighbourNum);
+                        int insertionIndex = insertionPos - routes[route].getCustomers().begin();
+
+                        // Determine if we want to try inserting before or after that position, depending on the added cost
+                        float costOfInsertingBefore = routes[route].getAddedDistanceOfInsert(customerNumber, insertionIndex);
+                        float costOfInsertingAfter = routes[route].getAddedDistanceOfInsert(customerNumber, insertionIndex+1);
+                        int insertionOffset [2] = {
+                            costOfInsertingBefore < costOfInsertingAfter ? 0 : 1,
+                            costOfInsertingBefore < costOfInsertingAfter ? 1 : 0
+                        };
+                        // Try inserting
+                        for(int offset : insertionOffset) {
+                            if(routes[route].canInsertCustomer(customerNumber, insertionIndex + offset)) {
+                                routes[route].insertCustomer(customerNumber, insertionPos + offset);
+                                done = true;
+                                break;
+                            }
+                        }
+                    //}
+                }
+            }
+            neighbourIdx++;
+        } while(neighbourIdx < maxClosestNeighbour && !done);
+
+        if(!done) {
+            // Unable to insert the customer to the route of one of its closest customers
+            // => Revert to every route, starting from the routes of the closest depot
+            int firstRouteOfDepot = (closestDepot.getNumber()-1) * problem.getVehiclesPerDepot();
+            int j = 0, idx = 0, position = 0;
+            while(j < routes.size()) {
+                idx = (j + firstRouteOfDepot) % routes.size();
+                // Try to insert at the position of the closest customer in the route
+                //position = rd::gen(routes[idx].getCustomers().size());
+                if(routes[idx].getCustomers().size() == 0)
+                    position = 0;
+                else {
+                    int closestInRoute = problem.getClosestCustomer(customer, routes[idx].getCustomers()).getNumber();
+                    position = std::find(routes[idx].getCustomers().begin(), routes[idx].getCustomers().end(), closestInRoute) - routes[idx].getCustomers().begin();
+                    // 0.5 chance of inserting after the closest customer
+                    //if(rd::gen() > 0.5) position++;
+                    // Determine if we want to try inserting before or after that position, depending on the added cost
+                    float costOfInsertingBefore = routes[idx].getAddedDistanceOfInsert(customerNumber, position);
+                    float costOfInsertingAfter = routes[idx].getAddedDistanceOfInsert(customerNumber, position+1);
+                    position = costOfInsertingBefore < costOfInsertingAfter ? position : position + 1;
+                }
+                if(routes[idx].canInsertCustomer(customerNumber, position)) {
+                    routes[idx].insertCustomer(customerNumber, routes[idx].getCustomers().begin() + position);
+                    done = true;
+                    break;
+                }
+                j++;
+            }
+        }
+
+        if(!done) {
+            problem.increaseDistanceToleranceFactor();
+            return createIndividual(customerNumbers);
+            //cout << "\nCritical error 2 generating individual\n";
+        }
+        // Start on a random route of the closest depot
+        /*int closestDepotNumber = useClosestDepot ?
+            problem.getClosestDepot(problem.getCustomerByNumber(customerNumber)).getNumber() :
+            (1 + rd::gen(problem.getDepots().size()));
+        int firstRouteOfDepot = (closestDepotNumber-1) * problem.getVehiclesPerDepot();
+        int initialRoute = firstRouteOfDepot + rd::gen(problem.getVehiclesPerDepot());
+        int route = initialRoute;
+        // Iterate through all routes of this depot until we find a suitable one
+        while(!routes[route].canAddCustomer(customerNumber)) {
+            route = firstRouteOfDepot + (route - firstRouteOfDepot + 1) % problem.getVehiclesPerDepot();
+            if(route == initialRoute)
+                break;
+        }
+        // Revert back to random if not possible
+        if(!routes[route].canAddCustomer(customerNumber)) {
+            initialRoute = rd::gen(routes.size());
+            route = initialRoute;
+            // Iterate through all routes of this depot until we find a suitable one
+            while(!routes[route].canAddCustomer(customerNumber)) {
+                route = (route + 1) % routes.size();
+                if(route == initialRoute)
+                    break;
+            }
+        }*/
+    }
+    
+    return Individual(routes);
+}
+
+void MDVRPGeneticAlgorithm::buildInitialPopulation(int populationSize) {
     vector<int> customerNumbers;
     for(int n = 0; n < problem.getCustomers().size(); n++)
         customerNumbers.push_back(problem.getCustomers()[n].getNumber());
 
-    // Sort by decreasing demand to make initialization easier
-    MDVRP &pb = problem;
-    sort(customerNumbers.begin(), customerNumbers.end(), [&pb](int a, int b) -> bool {
-        return pb.getCustomerByNumber(b).getDemand() < pb.getCustomerByNumber(a).getDemand();
-    });
-    
+    cout << "\nGenerating initial population...\n";
+    int loadingBars = 30;
     for(int i = 0; i < populationSize; i++) {
-        // Initialize empty routes
-        vector<Route> routes = vector<Route>();
-        for(int d = 0; d < problem.getDepots().size(); d++) {
-            for(int v = 0; v < problem.getVehiclesPerDepot(); v++)
-                routes.push_back(Route(problem, problem.getDepots()[d]));
-        }
-
-        for(int i = 0; i < customerNumbers.size(); i++) {
-            int customerNumber = customerNumbers[i];
-            
-            // Random route
-            /*int route = 0;
-            do {
-                route = rd::gen(routes.size());
-            } while(!routes[route].canAddCustomer(customerNumber));*/
-        
-            // Random route of closest depot
-            int closestDepotNumber = problem.getClosestDepot(problem.getCustomerByNumber(customerNumber)).getNumber();
-            int route = (closestDepotNumber-1) * problem.getVehiclesPerDepot() + rd::gen(problem.getVehiclesPerDepot());
-            // Revert back to random if not possible
-            while(!routes[route].canAddCustomer(customerNumber))
-                route = rd::gen(routes.size());
-
-            // Add customer to the route
-            //cout << "\Adding customer " << closestCustomer.getNumber() << " to route of vehicle " << vehicleNumber << " (depot #" << randomDepotIndex << ")"; 
-            //cout << " success";
-            routes[route].addCustomer(customerNumber);
-        }
-
-        pop.addIndividual(Individual(routes));
+        // Progress bar display
+        int progress = round(loadingBars * i / (float) populationSize);
+        cout << "\r[";
+        for(int j = 0; j < loadingBars; j++)
+            cout << (j == progress ? ">" : j > progress ? ":" : "-");
+        cout << "]";
+        // Add a new individual
+        population.addIndividual(createIndividual(customerNumbers));
     }
     
-    this->population = pop;
-
-    // Test crossover
-    //this->population.getIndividuals()[0].crossover(this->population.getIndividuals()[1]);
-
-    // Test mutation
-    //this->population.getIndividuals()[0].mutation();
+    std::cout << "\rFinished generating initial population." << " (best distance: " << population.getFittestIndividual().getTotalDistance() << ")";
+    std::cout << "\nIllegal distance tolerance factor: " << problem.getDistanceToleranceFactor();
 }
 
 void MDVRPGeneticAlgorithm::solve() {
-    const int GENERATIONS = 10000;
-    const int POPULATION_SIZE = 50;
-    const int NUMBER_OF_ELITES = 5;
-    const double MUTATION_RATE = 0.8;
-    const double CROSSOVER_RATE = 0.5;
-
     this->buildInitialPopulation(POPULATION_SIZE);
-    //std::cout << "\nFinished generating initial population." << " (best distance: " << population.getFittestIndividual().getTotalDistance() << ")";
-
+    
     int totalTime = 0, time1 = 0, time2 = 0, time3 = 0;
 
     for(int i = 0; i < GENERATIONS; i++) {  
@@ -101,19 +229,25 @@ void MDVRPGeneticAlgorithm::solve() {
 
         int dur3 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
         
+        // Print information
         if(i % 1000 == 0) {
-            std::cout << "\n##### Generation " << i << " #####";
-            //std::cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
-            //std::cout << "\n";
-            //population.getFittestIndividual().print();
-            //std::cout << "\nAverage distance: " << population.getAverageDistance();
+            cout << "\n##### Generation " << i << " #####";
+            cout << " (overall best: " << population.getFittestIndividual().getTotalDistance() << ", legal best: ";
+            Individual* fittestLegal = population.getFittestLegalIndividual();
+            if(fittestLegal == nullptr)
+                cout << "none";
+            else
+                cout << fittestLegal->getTotalDistance();
+            cout << ", average distance: " << population.calculateAverageDistance();
+            cout << ", illegal routes: " << population.getNumberOfIllegalRoutes() << ")";
         }
+
+        time1 += dur1; time2 += dur2; time3 += dur3; totalTime += dur1 + dur2 + dur3;
     }
     
-    /*std::cout << "\nTimes (ms): " << time1 << ", "<< time2 << ", "<< time3 << ", " << ", "<< totalTime << ", ";
-    std::cout << "\nTime spent generating offspring: " << 100 * time1 / totalTime << " %";
-    std::cout << "\nTime spent mutating: " << 100 * time2 / totalTime << " %";
-    std::cout << "\nTime spent inserting in population: " << 100 * time3 / totalTime << " %";*/
+    std::cout << "\nTime spent generating offspring: " << time1 << " ms (" << 100 * time1 / totalTime << "%)";
+    std::cout << "\nTime spent mutating: " << time2 << "ms (" << 100 * time2 / totalTime << "%)";
+    std::cout << "\nTime spent inserting in population: " << time3 << " ms (" << 100 * time3 / totalTime << "%)";
 
     std::cout << "\n";
     std::cout << "\nBest distance: " << population.getFittestIndividual().getTotalDistance();
@@ -121,8 +255,8 @@ void MDVRPGeneticAlgorithm::solve() {
 }
 
 vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float crossoverRate) {
-    // Implementation of roulette wheel selection with O(log2(n)) selection
-    // Start by creating an array of cumulative weights: O(n)
+    // Create an array of cumulative fitnesses (takes linear time, but allows us to do
+    // roulette wheel selection wich O(log2(n)) selection).
     float total = 0;
     vector<float> cumulative(population.getIndividuals().size() + 1);
     cumulative[0] = 0;
@@ -132,8 +266,8 @@ vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float
     }
         
     vector<Individual> offsprings;
+
     for(int j = 0; j < numOffsprings; j++) {
-        // int parentA = roulettewheel::spin(cumulative, total);
         if(rd::gen() < crossoverRate) {   
             int parentB = 0;
             do {
@@ -148,11 +282,13 @@ vector<Individual> MDVRPGeneticAlgorithm::makeOffspring(int numOffsprings, float
         else
             offsprings.push_back(population.getIndividuals()[j]);
     }
+
     return offsprings;
 }
 
 void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutationRate) {
     for(int j = 0; j < individuals.size(); j++) {
+        // Allows for a mutation rate higher than 1 (ensures the average rate of mutations is correct)
         float mutRate = mutationRate;
         int numMutations = 0;
         while(mutRate > 0) {
@@ -161,7 +297,7 @@ void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutati
             mutRate--;
         }                
         for(int m = 0; m < numMutations; m++)
-            individuals[j].mutation();
+            individuals[j].mutate();
     }
 
 }

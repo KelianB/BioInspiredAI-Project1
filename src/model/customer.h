@@ -12,9 +12,9 @@ class Customer : public Locatable {
         int demand;
     public: 
         Customer(int nb, float x, float y, int msd, int dmd): Locatable(x,y) {
-            number = nb;
-            maxServiceDuration = msd;
-            demand = dmd;
+            this->number = nb;
+            this->maxServiceDuration = msd;
+            this->demand = dmd;
         }
 
         int getNumber() {return number;}

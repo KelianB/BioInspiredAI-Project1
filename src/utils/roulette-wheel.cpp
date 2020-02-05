@@ -1,11 +1,12 @@
+#include "random.h"
+
 #include <roulette-wheel.h>
 #include <vector>
 #include <cstdlib>
-#include "random.h"
 
 using namespace std;
 
-// Uses binary search to achieve O(log2(n)) complexity
+/** Uses binary search to achieve O(log2(n)) time complexity **/
 int roulettewheel::spin(vector<float> cumulativeWeights, float sumOfWeights) {
     int length = cumulativeWeights.size() - 1;
     double r = sumOfWeights * rd::gen();    

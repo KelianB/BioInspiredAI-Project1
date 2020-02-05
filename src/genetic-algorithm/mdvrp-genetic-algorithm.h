@@ -6,12 +6,22 @@
 
 class MDVRPGeneticAlgorithm {
     private:
+        /** ##### Hyperparameters ##### */ 
+        const int GENERATIONS = 20000;
+        const int POPULATION_SIZE = 50;
+        const int NUMBER_OF_ELITES = 5;
+        const double MUTATION_RATE = 0.8;
+        const double CROSSOVER_RATE = 0;
+
         MDVRP& problem;
         Population population;
 
-        void mutate(vector<Individual>& individuals, float mutationRate);
+        Individual createIndividual(vector<int> customerNumbers);
+
+        // Some private methods just to split our code in well defined parts
         vector<Individual> makeOffspring(int numOffsprings, float crossoverRate);
         void insertOffspring();
+        void mutate(vector<Individual>& individuals, float mutationRate);
     public:
         MDVRPGeneticAlgorithm(MDVRP& pb);
 

@@ -12,7 +12,7 @@ using namespace std;
 class Route { 
     private:
         MDVRP& problem;
-        Depot depot;
+        Depot& depot;
         vector<int> customers;
 
         bool totalDistanceRequireUpdate;
@@ -21,22 +21,28 @@ class Route {
         bool totalDemandRequireUpdate;
         float totalDemand;
     public: 
-        Route(MDVRP& problem, Depot dep);
+        Route(MDVRP& problem, Depot& dep);
 
         bool canAddCustomer(int customerNumber);
         bool canInsertCustomer(int customerNumber, int position); 
+        bool canReplaceCustomer(int customerNumber, int position);
+        float getAddedDistanceOfInsert(int customerNumber, int position);
+
+        bool isLegal();
 
         void addCustomer(int customerNumber);
-        bool hasCustomer(int customerNumber);
+        void insertCustomer(int customerNumber, vector<int>::iterator pos);
         bool removeCustomer(int customerNumber);
+        void reverseCustomers(int beginIndex, int endIndex);
         void setCustomers(vector<int> customerNumbers);
-        vector<int>& getCustomers() {return customers;};
+        
+        bool hasCustomer(int customerNumber);
         bool isValid();
 
         float getTotalDistance();
-        void insertCustomer(int customer_number, vector<int>::iterator pos);
         int getTotalDemand();
-        Depot getDepot() {return depot;}
+        vector<int>& getCustomers() {return customers;};
+        Depot& getDepot() {return depot;}
 
         Route &operator = (const Route &r) {
             depot = r.depot; return *this; 

@@ -341,18 +341,26 @@ void MDVRPGeneticAlgorithm::printState() {
 
 }
 
-void MDVRPGeneticAlgorithm::outputFile(){
-	Individual bestInd = population.getFittestIndividual();
-	ofstream f;
-	string path = "../../Solution_Files/";
-	string extension = ".res";
-	f.open(path+/*=inputProblem +*/extension);
-	f << std::to_string(bestInd.getTotalDistance())+"\n"; //first line of the output
-	for (int i = 0; i < bestInd.getRoutes().size(); ++i){
-		f << std::to_string(bestInd.getRoutes()[i].getDepot().getNumber())+"\t" + /*numero voiture dans son depot +*/"\t" + std::to_string(bestInd.getRoutes()[i].getTotalDistance())+"\t" + std::to_string(bestInd.getRoutes()[i].getTotalDemand())+"\t"+ std::to_string(bestInd.getRoutes()[i].getDepot().getNumber())+"\t";
-		for (int j = 0; j < bestInd.getRoutes()[i].getCustomers().size(); ++j){
-			f << std::to_string(bestInd.getRoutes()[i].getCustomers()[j]) + " ";
-		}
+void MDVRPGeneticAlgorithm::outputFile() {
+	const string OUTPUT_DIR = "../../solutions/";
+    const string EXTENSION = ".res";
+
+	Individual& bestInd = population.getFittestIndividual();
+    ofstream f;
+
+	f.open(OUTPUT_DIR + problem.getProblemName() + EXTENSION);
+
+	f << round(bestInd.getTotalDistance() * 100) / 100 << "\n"; // first line of the output
+	for(int i = 0; i < bestInd.getRoutes().size(); ++i){
+        Route &r = bestInd.getRoutes()[i]; 
+        if(r.getCustomers().size() == 0)
+            continue;
+
+		f << r.getDepot().getNumber() << "\t" << 1 + i % problem.getVehiclesPerDepot() << "\t" << round(r.getTotalDistance() * 100) / 100;
+        f << "\t" << r.getTotalDemand() << "\t" << r.getDepot().getNumber() << "\t";
+		for(int j = 0; j < r.getCustomers().size(); ++j)
+			f << r.getCustomers()[j] << " ";
+
 		f << "\n";
 	}
 	f.close();

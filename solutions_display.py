@@ -37,7 +37,7 @@ def read_solution_file(pb, nb_customer):
   all_routes is a list of list containing all the routes of a solution.
   One route is a list of integers that starts and ends with the depot number.
   """
-  f = open("Solution_Files/"+pb+".res", "r")
+  f = open("solutions/"+pb+".res", "r")
   index = 0
   all_routes = [[]]
   for line in f.readlines():

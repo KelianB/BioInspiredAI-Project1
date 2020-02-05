@@ -24,7 +24,9 @@ vector<int> lineToNumbers(string line) {
     return numbers;
 }
 
-MDVRP::MDVRP(const char filePath[]) {
+MDVRP::MDVRP(const char filePath[], string problemName) {
+    this->problemName = problemName;
+
     ifstream fileStream;
     fileStream.open(filePath);
     

@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     }
     
     // Read input data
-    MDVRP problem((DATA_DIR + inputProblem).c_str());
+    MDVRP problem((DATA_DIR + inputProblem).c_str(), inputProblem);
     
     // Initialize GAs
     vector<MDVRPGeneticAlgorithm> geneticAlgorithms;
@@ -76,6 +76,11 @@ int main(int argc, char *argv[]) {
 
         runGenerationsInParallel(geneticAlgorithms, GENERATIONS_PER_STEP);
         step++;
+
+        if(step == 1) {
+            geneticAlgorithms[0].outputFile();
+            break;
+        }
     }
 
     // Find best GA

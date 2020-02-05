@@ -210,6 +210,9 @@ void MDVRPGeneticAlgorithm::runGenerations(int num) {
         return;
     }
 
+    if(this->isTerminated())
+        return;
+
     // int totalTime = 0, time1 = 0, time2 = 0, time3 = 0;
     
     if(printProgress)
@@ -238,7 +241,21 @@ void MDVRPGeneticAlgorithm::runGenerations(int num) {
         // int dur3 = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - begin).count();  
         
         // time1 += dur1; time2 += dur2; time3 += dur3; totalTime += dur1 + dur2 + dur3;
+
+        generationsRan++;
     }
+
+    // Update values used for termination
+    float bestFitness = population.getFittestIndividual().getFitness();
+    if(bestFitness != previousBestFitness) {
+        previousBestFitness = bestFitness;
+        numStepsWithoutFitnessChange = 0;
+    }
+    else
+        numStepsWithoutFitnessChange++;
+
+    if(shouldTerminate())
+        terminate();
 
     if(printProgress)
         cout << "\r                                             ";
@@ -295,16 +312,28 @@ void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutati
     }
 }
 
-void MDVRPGeneticAlgorithm::printState() {
-    //cout << "\n##### Generation " << i << " #####";
-    // TODO if terminated just print last distance
+bool MDVRPGeneticAlgorithm::shouldTerminate() {
+    return numStepsWithoutFitnessChange >= TERMINATION_FITNESS_STEPS
+        // Do not terminate if there is still no legal individuals
+        && population.getNumberOfIllegalIndividuals() < population.getIndividuals().size();
+}
 
-    cout << "\nBest distance: overall = " << population.getFittestIndividual().getTotalDistance() << ", legal = ";
-    Individual* fittestLegal = population.getFittestLegalIndividual();
-    if(fittestLegal == nullptr) cout << "none";
-    else cout << fittestLegal->getTotalDistance();
-    cout << "\nAverage distance: " << population.calculateAverageDistance();
-    cout << "\nIllegal routes: " << population.getNumberOfIllegalRoutes() << ".";
-    cout << " Illegal individuals: " << population.getNumberOfIllegalIndividuals() << ".";
+void MDVRPGeneticAlgorithm::terminate() {
+    this->terminated = true;
+}
+
+void MDVRPGeneticAlgorithm::printState() {
+    if(this->isTerminated()) {
+        cout << "\nBest legal distance: " << population.getFittestLegalIndividual()->getTotalDistance();
+    }
+    else {
+        cout << "\nBest distance: overall = " << population.getFittestIndividual().getTotalDistance() << ", legal = ";
+        Individual* fittestLegal = population.getFittestLegalIndividual();
+        if(fittestLegal == nullptr) cout << "none";
+        else cout << fittestLegal->getTotalDistance();
+        cout << "\nAverage distance: " << population.calculateAverageDistance() << ". ";
+        cout << "Illegal routes: " << population.getNumberOfIllegalRoutes() << ". ";
+        cout << "Illegal individuals: " << population.getNumberOfIllegalIndividuals() << ".";
+    }
 
 }

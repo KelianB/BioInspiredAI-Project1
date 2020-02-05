@@ -11,6 +11,7 @@ const string DATA_DIR = "../../testing-data/";
 const string DEFAULT_INPUT_PROBLEM = "p01";
 const int NUM_THREADS = 5;
 const int GENERATIONS_PER_STEP = 1000;
+const string SEPARATOR = "-------------------------------------------------------";
 
 void waitOnThreads(vector<thread>& threads) {
     for(int i = 0; i < threads.size(); i++)
@@ -56,14 +57,40 @@ int main(int argc, char *argv[]) {
     std::cout << "\nIllegal distance tolerance factor: " << problem.getDistanceToleranceFactor();
 
     // Run GAs in parallel
-    for(int i = 0; i < 10; i++) {
+    int allTerminated = false;
+    int step = 0;
+    while(!allTerminated) {
+        allTerminated = true;
+
+        cout << "\n\n" << SEPARATOR;
         for(int t = 0; t < geneticAlgorithms.size(); t++) {
-            cout << "\n\n####### GA " << t+1 << " - GENERATION " << i * GENERATIONS_PER_STEP << " #######";
+            bool terminated = geneticAlgorithms[t].isTerminated();
+            cout << "\n\n####### GA " << t+1 <<  " - ";
+            if(terminated) cout << "(terminated)";
+            else cout << "GENERATION " << geneticAlgorithms[t].getGenerationsRan();
+            cout << " #######";
             geneticAlgorithms[t].printState();
+            if(!terminated)
+                allTerminated = false;
         }
 
         runGenerationsInParallel(geneticAlgorithms, GENERATIONS_PER_STEP);
+        step++;
     }
+
+    // Find best GA
+    int bestIndex = 0;
+    float bestFitness = geneticAlgorithms[0].getPopulation().getFittestLegalIndividual()->getFitness();
+    for(int ga = 1; ga < geneticAlgorithms.size(); ga++) {
+        float fitness = geneticAlgorithms[ga].getPopulation().getFittestLegalIndividual()->getFitness();
+        if(fitness > bestFitness) {
+            bestFitness = fitness;
+            bestIndex = ga;
+        }
+    }
+    cout << "\n\n" << SEPARATOR << "\nAll GAs were terminated.\nBest distance obtained: ";
+    cout << geneticAlgorithms[bestIndex].getPopulation().getFittestLegalIndividual()->getTotalDistance();
+    cout << " (after " << geneticAlgorithms[bestIndex].getGenerationsRan() << " generations).";
 
     return 1;
 }

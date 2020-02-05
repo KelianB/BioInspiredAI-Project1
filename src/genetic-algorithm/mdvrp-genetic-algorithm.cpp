@@ -9,11 +9,11 @@
 #include <chrono>
 #include <random>
 #include <thread>
+#include <fstream>
 
 using namespace std;
 
 MDVRPGeneticAlgorithm::MDVRPGeneticAlgorithm(MDVRP& pb): problem(pb) {
-
 }
 
 Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) {
@@ -300,4 +300,20 @@ void MDVRPGeneticAlgorithm::mutate(vector<Individual>& individuals, float mutati
             individuals[j].mutate();
     }
 
+}
+
+void MDVRPGeneticAlgorithm::outputFile(){
+	bestInd = population.getFittestIndividual();
+	ofstream f;
+	f.open("../../Solution_Files/"+filePb/*=inputProblem*/+".res");
+	f << bestInd.getTotalDistance()+"\n";
+	for (int i = 0; i < bestInd.getRoutes().size(); ++i){
+		f << bestInd.getRoutes()[i].getDepots()+"\t" + /*numero voiture dans son depot*/i +"\t" + bestInd.getRoutes()[i].getTotalDistance()+"\t" +bestInd.getRoutes()[i].getTotalDemand()+"\t"+bestInd.getRoutes()[i].getDepots()+"\t";
+		for (int j = 0; j < bestInd.getRoutes()[i].size(); ++i)
+		{
+			f << bestInd.getRoutes()[i][j] + " ";
+		}
+		f << "\n";
+	}
+	f.close()
 }

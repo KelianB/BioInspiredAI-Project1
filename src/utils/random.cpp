@@ -21,7 +21,7 @@ int rd::gen(int max) {
 
 /** Returns a float in the range [0,1[ */
 float rd::gen() {
-    return rd::gen(INT_MAX) / (float) INT_MAX;
+    return rd::gen(INT8_MAX) / (float) INT8_MAX;
 }
 
 /** Gets a seed that will be different depending on the thread */

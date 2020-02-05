@@ -27,6 +27,7 @@ class MDVRPGeneticAlgorithm {
 
         void buildInitialPopulation(int populationSize);
         void solve();
+        void outputFile();
 };
 
 #endif

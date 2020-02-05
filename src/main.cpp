@@ -10,11 +10,12 @@ using namespace std;
 const string DATA_DIR = "../../testing-data/"; 
 const string DEFAULT_INPUT_PROBLEM = "p01";
 
-const int NUM_THREADS = 1;
+const int DEFAULT_NUM_THREADS = 5;
 const int GENERATIONS_PER_STEP = 1000;
 
 const string SEPARATOR = "-------------------------------------------------------";
 vector<MDVRPGeneticAlgorithm> geneticAlgorithms;
+bool finished = false;
 
 void waitOnThreads(vector<thread>& threads) {
     for(int i = 0; i < threads.size(); i++)
@@ -60,22 +61,31 @@ void printAndSaveBest() {
         cout << "\nTerminated with no legal solutions.";
 }
 
+void onExit() {
+    if(!finished)
+        printAndSaveBest();
+}
+
 int main(int argc, char *argv[]) {
     // Make sure to save the best results on exit
-    std::atexit(printAndSaveBest);
-
-    // Get the input problem name from command line arguments (defaults to p01)
+    std::atexit(onExit);
+    
     string inputProblem = DEFAULT_INPUT_PROBLEM;
+    int numThreads = DEFAULT_NUM_THREADS;
+
+    // Get command line arguments 
     for(int i = 1; i < argc; i++) {
         if(string(argv[i-1]) == "-p")
             inputProblem = argv[i];
+        if(string(argv[i-1]) == "-t")
+            numThreads = stoi(argv[i]);
     }
     
     // Read input data
     MDVRP problem((DATA_DIR + inputProblem).c_str(), inputProblem);
     
     // Initialize GAs
-    for(int i = 0; i < NUM_THREADS; i++)
+    for(int i = 0; i < numThreads; i++)
         geneticAlgorithms.push_back(MDVRPGeneticAlgorithm(problem, i==0));
 
     // Build initial populations in parallel
@@ -90,6 +100,7 @@ int main(int argc, char *argv[]) {
     while(!allTerminated) {
         allTerminated = true;
 
+        // Print states
         cout << "\n\n" << SEPARATOR;
         for(int t = 0; t < geneticAlgorithms.size(); t++) {
             bool terminated = geneticAlgorithms[t].isTerminated();
@@ -107,6 +118,8 @@ int main(int argc, char *argv[]) {
     }
 
     cout << "\n\n" << SEPARATOR << "\n\nAll GAs were terminated.\n";
+    printAndSaveBest();
+    finished = true;
 
     return 0;
 }

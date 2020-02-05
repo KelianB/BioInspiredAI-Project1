@@ -126,6 +126,28 @@ void Route::reverseCustomers(int beginIndex, int endIndex) {
     this->totalDistanceRequireUpdate = true;
 }
 
+void Route::swapCustomers(int pos1, int pos2) {
+    if(pos1 == pos2)
+        return;
+    // Normalize so we only have to handle one case of trying to swap to the end
+    if(pos1 == customers.size()) {
+        swapCustomers(pos2, pos1);
+        return;
+    }
+    // If trying to swap with a position at the end of the array, simply move it to the end
+    if(pos2 == customers.size()) {
+        int number = customers[pos1];
+        removeCustomer(number);
+        addCustomer(number);
+    }
+    else {
+        int temp = customers[pos1];
+        customers[pos1] = customers[pos2];
+        customers[pos2] = temp;
+        this->totalDistanceRequireUpdate = true;
+    }
+}
+
 bool Route::hasCustomer(int customerNumber) {
     return std::find(getCustomers().begin(), getCustomers().end(), customerNumber) != getCustomers().end();
 }

@@ -42,8 +42,8 @@ Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) 
             continue;            
         }
 
-        // Build a vector of "neigbours" (customers that were already assigned to a route), 
-        // which sorted by increasing distance to customer
+        // Build a vector of customers that were already assigned to a route, 
+        // sorted by increasing distance to customer
         vector<int> neighbours = vector<int>(customerNumbers.begin(), customerNumbers.begin() + i);
         MDVRP &pb = problem;
         sort(neighbours.begin(), neighbours.end(), [&pb, &customer](int a, int b) -> bool {
@@ -57,11 +57,12 @@ Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) 
         do {
             int neighbourNum = neighbours[neighbourIdx];
 
-            // If customer is closer to its closest depot than to this neighbour, try to assign it to an empty route of the depot
+            // If customer is closer to its closest depot than to this neighbour, 
+            // have a random chance to try assigning it to an empty route of the depot
             if(problem.getDistance(customer, closestDepot) < problem.getDistance(customer, problem.getCustomerByNumber(neighbourNum))) {
                 int firstRouteOfDepot = (closestDepot.getNumber()-1) * problem.getVehiclesPerDepot();
                 int j = 0;
-                while(routes[firstRouteOfDepot + j].getCustomers().size() > 0 && j < problem.getVehiclesPerDepot()) {
+                while(j < problem.getVehiclesPerDepot() && routes[firstRouteOfDepot + j].getCustomers().size() > 0) {
                     j++;
                 }
                 // Found an empty route
@@ -78,84 +79,74 @@ Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) 
                     route++;
 
                 // Random chance of going to another route
-                //while(rd::gen() < 0)
+                //while(rd::gen() < 0.5)
                   //  route = (route + 1) % routes.size();
 
-
                 if(route == routes.size()) {
-                    // Critical error: the neighbour was never added to a route, which means there is was a problem before
+                    // Critical error: the neighbour was never added to a route, which means that a problem occured before
                     cout << "\nCritical error generating individual (neighbour should have been added to a route)\n";
+                    break;
                 }
-                else {
-                    // First, try to insert at a random position (this is just to add some randomness to our initialization)
-                    /*int randomPosition = rd::gen(routes[route].getCustomers().size());
-                    if(routes[route].canInsertCustomer(customerNumber, randomPosition)) {
-                        routes[route].insertCustomer(customerNumber, routes[route].getCustomers().begin() + randomPosition);
-                        done = true;
-                        continue;
-                    }                    
-                    else if(routes[route].hasCustomer(neighbourNum)) {
-                    */
-                        // Find the position of the neighbour within its route
-                        vector<int>::iterator insertionPos = find(routes[route].getCustomers().begin(), routes[route].getCustomers().end(), neighbourNum);
-                        int insertionIndex = insertionPos - routes[route].getCustomers().begin();
+                // First, try to insert at a random position (this is just to add some randomness to our initialization)
+                /*int randomPosition = rd::gen(routes[route].getCustomers().size());
+                if(routes[route].canInsertCustomer(customerNumber, randomPosition)) {
+                    routes[route].insertCustomer(customerNumber, routes[route].getCustomers().begin() + randomPosition);
+                    done = true;
+                    continue;
+                }                    
+                else if(routes[route].hasCustomer(neighbourNum)) {
+                */
+                    // Find the position of the neighbour within its route
+                    int insertionIndex = find(routes[route].getCustomers().begin(), routes[route].getCustomers().end(), neighbourNum) - routes[route].getCustomers().begin();
 
-                        // Determine if we want to try inserting before or after that position, depending on the added cost
-                        float costOfInsertingBefore = routes[route].getAddedDistanceOfInsert(customerNumber, insertionIndex);
-                        float costOfInsertingAfter = routes[route].getAddedDistanceOfInsert(customerNumber, insertionIndex+1);
-                        int insertionOffset [2] = {
-                            costOfInsertingBefore < costOfInsertingAfter ? 0 : 1,
-                            costOfInsertingBefore < costOfInsertingAfter ? 1 : 0
-                        };
-                        // Try inserting
-                        for(int offset : insertionOffset) {
-                            if(routes[route].canInsertCustomer(customerNumber, insertionIndex + offset)) {
-                                routes[route].insertCustomer(customerNumber, insertionPos + offset);
-                                done = true;
-                                break;
-                            }
-                        }
-                    //}
-                }
+                    // Determine if we want to try inserting before or after that position, depending on the added cost
+                    float costOfInsertingBefore = routes[route].getAddedDistanceOfInsert(customerNumber, insertionIndex);
+                    float costOfInsertingAfter = routes[route].getAddedDistanceOfInsert(customerNumber, insertionIndex+1);
+                    insertionIndex = costOfInsertingBefore < costOfInsertingAfter ? insertionIndex : insertionIndex + 1;
+                    
+                    if(routes[route].canInsertCustomer(customerNumber, insertionIndex)) {
+                        routes[route].insertCustomer(customerNumber, routes[route].getCustomers().begin() + insertionIndex);
+                        done = true;
+                        break;
+                    }
+                //}
             }
             neighbourIdx++;
         } while(neighbourIdx < maxClosestNeighbour && !done);
 
         if(!done) {
             // Unable to insert the customer to the route of one of its closest customers
-            // => Revert to every route, starting from the routes of the closest depot
+            // => Revert to trying every route, starting from the routes of the closest depot
             int firstRouteOfDepot = (closestDepot.getNumber()-1) * problem.getVehiclesPerDepot();
-            int j = 0, idx = 0, position = 0;
-            while(j < routes.size()) {
-                idx = (j + firstRouteOfDepot) % routes.size();
-                // Try to insert at the position of the closest customer in the route
-                //position = rd::gen(routes[idx].getCustomers().size());
-                if(routes[idx].getCustomers().size() == 0)
-                    position = 0;
-                else {
+            int j = 0;
+            while(j < routes.size() && !done) {
+                int idx = (j + firstRouteOfDepot) % routes.size();
+                int position = 0;
+                if(routes[idx].getCustomers().size() > 0) {
+                    // Find the closest customer in that route and try inserting next to it
                     int closestInRoute = problem.getClosestCustomer(customer, routes[idx].getCustomers()).getNumber();
                     position = std::find(routes[idx].getCustomers().begin(), routes[idx].getCustomers().end(), closestInRoute) - routes[idx].getCustomers().begin();
-                    // 0.5 chance of inserting after the closest customer
-                    //if(rd::gen() > 0.5) position++;
                     // Determine if we want to try inserting before or after that position, depending on the added cost
                     float costOfInsertingBefore = routes[idx].getAddedDistanceOfInsert(customerNumber, position);
                     float costOfInsertingAfter = routes[idx].getAddedDistanceOfInsert(customerNumber, position+1);
                     position = costOfInsertingBefore < costOfInsertingAfter ? position : position + 1;
                 }
+
                 if(routes[idx].canInsertCustomer(customerNumber, position)) {
                     routes[idx].insertCustomer(customerNumber, routes[idx].getCustomers().begin() + position);
                     done = true;
-                    break;
                 }
                 j++;
             }
         }
 
         if(!done) {
+            // Retry with a higher tolerance for distance overflow
             problem.increaseDistanceToleranceFactor();
             return createIndividual(customerNumbers);
-            //cout << "\nCritical error 2 generating individual\n";
         }
+
+        /** Another method for creating individuals */
         // Start on a random route of the closest depot
         /*int closestDepotNumber = useClosestDepot ?
             problem.getClosestDepot(problem.getCustomerByNumber(customerNumber)).getNumber() :
@@ -188,10 +179,11 @@ Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) 
 const int PROGRESS_BAR_LENGTH = 30;
 void printProgressBar(float progress) {
     int loaded = round(PROGRESS_BAR_LENGTH * progress);
-    cout << "\r[";
+    string str = "\r["; 
     for(int j = 0; j < PROGRESS_BAR_LENGTH; j++)
-        cout << (j == loaded ? ">" : j > loaded ? ":" : "-");
-    cout << "]";
+        str += (j == loaded ? ">" : j > loaded ? ":" : "-");
+    str += "]";
+    cout << str;
 }
 
 void MDVRPGeneticAlgorithm::buildInitialPopulation() {

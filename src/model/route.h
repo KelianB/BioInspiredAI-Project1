@@ -32,6 +32,7 @@ class Route {
         bool isLegal();
 
         void addCustomer(int customerNumber);
+        void swapCustomers(int pos1, int pos2);
         void insertCustomer(int customerNumber, vector<int>::iterator pos);
         bool removeCustomer(int customerNumber);
         void reverseCustomers(int beginIndex, int endIndex);

@@ -34,7 +34,7 @@ float Individual::getFitness() {
                 dist += 100 * distanceOverflow;
         }
         this->shouldUpdateFitness = false;
-        this->fitness = 1 / pow(dist, 3);
+        this->fitness = 1 / pow(dist, 2);
     }
 
     return this->fitness;
@@ -71,23 +71,14 @@ bool tryCustomerMove(Route* from, Route* to, int customerNumber) {
 void Individual::mutationSwap() {
     bool debug = false;
 
-    /*double total = 0;
-    vector<float> cumulative;
-    cumulative.push_back(0);
-    for(int j = 0; j < this->routes.size(); j++) {
-        total += routes[j].getCustomers().size() / 2.0;        
-        cumulative.push_back(total);
-    }*/
-
 	bool done = false;
 	do {
         if(debug) cout << "\n[Mutation] Attempting swap mutation.";
+        // Choose two random routes
         int routeIndexA = rd::gen(this->routes.size());
         int routeIndexB = rd::gen(this->routes.size());
-		//int routeIndexA = roulettewheel::spin(cumulative, total);
-        //int routeIndexB = roulettewheel::spin(cumulative, total);
-        Route* randomRouteA = &this->routes[routeIndexA]; // choose a random route
-		Route* randomRouteB = &this->routes[routeIndexB]; // choose a random route
+        Route* randomRouteA = &this->routes[routeIndexA];
+		Route* randomRouteB = &this->routes[routeIndexB];
         int routeASize = randomRouteA->getCustomers().size(), routeBSize = randomRouteB->getCustomers().size();
         if(debug) cout << "\n[Mutation] Routes chosen (A: " << routeIndexA << ", B: " << routeIndexB << ")";
 		// If both routes are not empty
@@ -208,7 +199,7 @@ void Individual::print() {
     }
 }
 
-Individual Individual::crossover(Individual parentB) {
+/*Individual Individual::crossover(Individual parentB) {
     bool debug = false;
     if(debug) {
         cout << " \n\n[CROSSOVER]";
@@ -227,7 +218,7 @@ Individual Individual::crossover(Individual parentB) {
 
     // "Choose an arbitrary part from the first parent"
     int randomRouteIndex = rd::gen(this->routes.size());
-    int numberOfRoutesToCopy = 1 /*+ rd::gen(this->routes.size() / 2)*/; // copy between 1 and half of the routes 
+    int numberOfRoutesToCopy = 1; //+ rd::gen(this->routes.size() / 2); // copy between 1 and half of the routes 
     // "Copy this part into the child"
     vector<int> copiedCustomers;
     for(int i = 0; i < numberOfRoutesToCopy; i++) {
@@ -331,7 +322,7 @@ Individual Individual::crossover(Individual parentB) {
                 insertedCustomers.push_back(customer);*/
 
                 //offspring.getRoutes()[targetOffspringRouteIndex].addCustomer(customer);
-            } 
+            /*} 
         }
         else {
             // Insert route in offspring
@@ -350,6 +341,73 @@ Individual Individual::crossover(Individual parentB) {
     offspring.shouldUpdateFitness = true;
 
     return offspring;
+}*/
+
+Individual crossoverAux(Individual& parentA, Individual& parentB, int sequenceSize) {
+    Individual offspring(parentB.getRoutes());
+    
+    vector<int> routeIndicesDone;
+    int numberOfReorders = 3 + rd::gen(6);
+
+    for(int k = 0; k < numberOfReorders; k++) {
+        // Get a sequence of customers of size sequenceSize from any route of parentA that is big enough
+        int routeIndex = rd::gen(parentA.getRoutes().size());
+        int i = 0;
+        while(i < parentA.getRoutes().size() && (parentA.getRoutes()[routeIndex].getCustomers().size() < sequenceSize
+            || find(routeIndicesDone.begin(), routeIndicesDone.end(), routeIndex) != routeIndicesDone.end())) {
+            routeIndex = (routeIndex + i) % parentA.getRoutes().size();     
+            i++;
+        }
+
+        if(i == parentA.getRoutes().size())
+            return routeIndicesDone.size() > 0 ? offspring : crossoverAux(parentA, parentB, sequenceSize-1);
+
+        Route& route = parentA.getRoutes()[routeIndex];
+        int sequenceIndexOffset = rd::gen(route.getCustomers().size() -  sequenceSize);
+        vector<int> sequence(route.getCustomers().begin() + sequenceIndexOffset, route.getCustomers().begin() + sequenceIndexOffset + sequenceSize);
+
+        // Find a route in parentB that has the elements of this sequence
+        i = 0;
+        while(i < parentB.getRoutes().size()) {        
+            bool foundOne = false, foundAll = true;
+            for(int cust : sequence) {
+                if(!parentB.getRoutes()[i].hasCustomer(cust))
+                    foundAll = false;
+                else
+                    foundOne = true;
+            }
+
+            if(foundAll) // Success
+                break;
+            else if(foundOne) { // Failure
+                i = parentB.getRoutes().size();
+                break;
+            }
+            
+            i++;
+        }
+
+        if(i == parentB.getRoutes().size())
+            return routeIndicesDone.size() > 0 ? offspring : crossoverAux(parentA, parentB, sequenceSize - (rd::gen() < 0.5 ? 0 : 1));
+
+        // Reorder the customers in the sequence in the route from parent B them so they match the order of parent A
+        Route& r = offspring.getRoutes()[i];
+        int posOfFirst = find(r.getCustomers().begin(), r.getCustomers().end(), sequence[0]) - r.getCustomers().begin();
+        for(int i = 1; i < sequence.size(); i++) {
+            int pos = find(r.getCustomers().begin(), r.getCustomers().end(), sequence[i]) - r.getCustomers().begin();
+            r.swapCustomers(posOfFirst+i, pos);
+            if(pos < posOfFirst && posOfFirst+i == r.getCustomers().size())
+                posOfFirst--;
+        }
+
+        routeIndicesDone.push_back(routeIndex);
+    }
+
+    return offspring;
+}
+
+Individual Individual::crossover(Individual parentB) {
+    return crossoverAux(*this, parentB, 5);
 }
 
 bool Individual::isLegal() {

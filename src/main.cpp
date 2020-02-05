@@ -9,9 +9,12 @@ using namespace std;
 
 const string DATA_DIR = "../../testing-data/"; 
 const string DEFAULT_INPUT_PROBLEM = "p01";
-const int NUM_THREADS = 5;
+
+const int NUM_THREADS = 1;
 const int GENERATIONS_PER_STEP = 1000;
+
 const string SEPARATOR = "-------------------------------------------------------";
+vector<MDVRPGeneticAlgorithm> geneticAlgorithms;
 
 void waitOnThreads(vector<thread>& threads) {
     for(int i = 0; i < threads.size(); i++)
@@ -34,7 +37,29 @@ void runGenerationsInParallel(vector<MDVRPGeneticAlgorithm>& geneticAlgorithms, 
     waitOnThreads(threads); 
 }
 
+void printAndSaveBest() {
+    // Find best GA
+    int bestIndex = 0;
+    float bestFitness = geneticAlgorithms[0].getPopulation().getFittestLegalIndividual()->getFitness();
+    for(int ga = 1; ga < geneticAlgorithms.size(); ga++) {
+        float fitness = geneticAlgorithms[ga].getPopulation().getFittestLegalIndividual()->getFitness();
+        if(fitness > bestFitness) {
+            bestFitness = fitness;
+            bestIndex = ga;
+        }
+    }
+    
+    cout << "\nBest distance obtained: ";
+    cout << geneticAlgorithms[bestIndex].getPopulation().getFittestLegalIndividual()->getTotalDistance();
+    cout << " (after " << geneticAlgorithms[bestIndex].getGenerationsRan() << " generations).";
+
+    geneticAlgorithms[bestIndex].outputFile();
+}
+
 int main(int argc, char *argv[]) {
+    // Make sure to save the best results on exit
+    std::atexit(printAndSaveBest);
+
     // Get the input problem name from command line arguments (defaults to p01)
     string inputProblem = DEFAULT_INPUT_PROBLEM;
     for(int i = 1; i < argc; i++) {
@@ -46,7 +71,7 @@ int main(int argc, char *argv[]) {
     MDVRP problem((DATA_DIR + inputProblem).c_str(), inputProblem);
     
     // Initialize GAs
-    vector<MDVRPGeneticAlgorithm> geneticAlgorithms;
+
     for(int i = 0; i < NUM_THREADS; i++)
         geneticAlgorithms.push_back(MDVRPGeneticAlgorithm(problem, i==0));
 
@@ -76,26 +101,10 @@ int main(int argc, char *argv[]) {
 
         runGenerationsInParallel(geneticAlgorithms, GENERATIONS_PER_STEP);
         step++;
-
-        if(step == 1) {
-            geneticAlgorithms[0].outputFile();
-            break;
-        }
     }
 
     // Find best GA
-    int bestIndex = 0;
-    float bestFitness = geneticAlgorithms[0].getPopulation().getFittestLegalIndividual()->getFitness();
-    for(int ga = 1; ga < geneticAlgorithms.size(); ga++) {
-        float fitness = geneticAlgorithms[ga].getPopulation().getFittestLegalIndividual()->getFitness();
-        if(fitness > bestFitness) {
-            bestFitness = fitness;
-            bestIndex = ga;
-        }
-    }
-    cout << "\n\n" << SEPARATOR << "\nAll GAs were terminated.\nBest distance obtained: ";
-    cout << geneticAlgorithms[bestIndex].getPopulation().getFittestLegalIndividual()->getTotalDistance();
-    cout << " (after " << geneticAlgorithms[bestIndex].getGenerationsRan() << " generations).";
+    cout << "\n\n" << SEPARATOR << "\n\nAll GAs were terminated.\n";
 
     return 1;
 }

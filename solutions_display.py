@@ -1,6 +1,11 @@
 import os
 import matplotlib.pyplot as plt
 
+SOLUTIONS_DIR = "solutions/"
+SOLUTIONS_EXT = ".res"
+
+PROBLEM = "p01"
+
 def print_route(route, locations, nb_customer):
   color = ['r', 'b', 'g', 'y', 'c', 'm', 'k', 'g', 'r', 'c']#, 'orange', 'pink', 'purple', 'brown']
   for i in range(0,len(route)-1):
@@ -37,7 +42,7 @@ def read_solution_file(pb, nb_customer):
   all_routes is a list of list containing all the routes of a solution.
   One route is a list of integers that starts and ends with the depot number.
   """
-  f = open("solutions/"+pb+".res", "r")
+  f = open(SOLUTIONS_DIR+ pb + SOLUTIONS_EXT, "r")
   index = 0
   all_routes = [[]]
   for line in f.readlines():
@@ -46,11 +51,11 @@ def read_solution_file(pb, nb_customer):
       total_dist = line
     else:
       i = line.replace('\t', ' ').split(" ")
+      i[len(i)-1] = i[len(i)-1].rstrip('\n')
       while(" " in i) : 
         i.remove(" ")
       while("" in i) :
         i.remove("")
-      i[len(i)-1] = i[len(i)-1].rstrip('\n')
       route.append(int(i[0])+nb_customer)
       for j in range(5, len(i)):
         route.append(int(i[j]))
@@ -62,10 +67,8 @@ def read_solution_file(pb, nb_customer):
   return total_dist, all_routes
 
 
-pb = "p01"
-nb_depot, nb_customer, locations = get_locations(pb)
-#print(locations)
-dist, all_routes = read_solution_file(pb, nb_customer)
+nb_depot, nb_customer, locations = get_locations(PROBLEM)
+dist, all_routes = read_solution_file(PROBLEM, nb_customer)
 for route in all_routes:
   print_route(route, locations, nb_customer)
 print_depot(locations, nb_customer, nb_depot)

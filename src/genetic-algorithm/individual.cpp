@@ -211,7 +211,7 @@ void Individual::print() {
 Individual Individual::crossover(Individual parentB) {
     bool debug = false;
     if(debug) {
-        cout << "\n\n[CROSSOVER]";
+        cout << " \n\n[CROSSOVER]";
         cout << "\nParent A:\n";
         print();
         cout << "\nParent B:\n";
@@ -219,6 +219,11 @@ Individual Individual::crossover(Individual parentB) {
     }
 
     Individual offspring(routes);
+
+    // Store inserted customers
+    vector<int> insertedCustomers;
+
+    int nReinserted = 0;
 
     // "Choose an arbitrary part from the first parent"
     int randomRouteIndex = rd::gen(this->routes.size());
@@ -247,12 +252,70 @@ Individual Individual::crossover(Individual parentB) {
                 //j--;
             }
         }
-
+        
+        // Reinsertion
         if(i >= routes.size() - numberOfRoutesToCopy) {
             for(int j = 0; j < routeInB.getCustomers().size(); j++) {
                 int customer = routeInB.getCustomers()[j];
+
+                vector<int> neighbours = vector<int>(insertedCustomers.begin(), insertedCustomers.end());
+                MDVRP &pb = routeInB.problem;
+                sort(neighbours.begin(), neighbours.end(), [&pb, &customer](int a, int b) -> bool {
+                    return pb.getDistance(pb.getCustomerByNumber(a), pb.getCustomerByNumber(customer)) < pb.getDistance(pb.getCustomerByNumber(b), pb.getCustomerByNumber(customer));
+                });
+
+                bool reinserted = false;
+                if(neighbours.size() > 0) {
+                    int neighbourIdx = 0;
+                    do {
+                        int neighbour = neighbours[neighbourIdx];
+                        
+                        cout << "2";
+                        // Find route of this neighbour
+                        int routeOfClosest = 0;
+                        while(routeOfClosest < parentB.routes.size() && !parentB.routes[routeOfClosest].hasCustomer(neighbour))
+                            routeOfClosest++;
+
+                        // Find the position of the neighbour within its route
+                        vector<int>::iterator insertionPos = find(parentB.routes[routeOfClosest].getCustomers().begin(), parentB.routes[routeOfClosest].getCustomers().end(), neighbour);
+                        int insertionIndex = insertionPos - parentB.routes[routeOfClosest].getCustomers().begin();
+                        cout << "4";
+                        // Determine if we want to try inserting before or after that position, depending on the added cost
+                        float costOfInsertingBefore = parentB.routes[routeOfClosest].getAddedDistanceOfInsert(customer, insertionIndex);
+                        float costOfInsertingAfter = parentB.routes[routeOfClosest].getAddedDistanceOfInsert(customer, insertionIndex+1);
+                        int insertionOffset [2] = {
+                            costOfInsertingBefore < costOfInsertingAfter ? 0 : 1,
+                            costOfInsertingBefore < costOfInsertingAfter ? 1 : 0
+                        };
+                        cout << "5";
+                        // Try inserting
+                        for(int offset : insertionOffset) {
+                            if(parentB.routes[routeOfClosest].canInsertCustomer(customer, insertionIndex + offset)) {
+                                parentB.routes[routeOfClosest].insertCustomer(customer, insertionPos + offset);
+                                insertedCustomers.push_back(customer);
+                                reinserted = true;
+                                break;
+                            }
+                        }
+
+                        neighbourIdx++;
+                    } while(neighbourIdx < neighbours.size() && !reinserted);
+                    cout << "8";
+                }
+                else {
+
+                }
+
+                if(!reinserted) {
+                    cout << "\ncrossover aborted (reinserted: " << nReinserted << ")";
+                    return crossover(parentB);
+                }
+                else {
+                    nReinserted++;
+                }
+
                 // Because of our representation, we have to re-insert the customers in the overriden segments of B somewhere
-                int targetOffspringRouteIndex = routeIndex;
+                /*int targetOffspringRouteIndex = routeIndex;
                 while(!offspring.getRoutes()[targetOffspringRouteIndex].canAddCustomer(customer)) {
                     targetOffspringRouteIndex = (targetOffspringRouteIndex + 1) % routes.size();
 
@@ -265,12 +328,15 @@ Individual Individual::crossover(Individual parentB) {
 
                 Route &r = offspring.getRoutes()[targetOffspringRouteIndex];
                 r.insertCustomer(customer, r.getCustomers().begin() + rd::gen(r.getCustomers().size()));
+                insertedCustomers.push_back(customer);*/
+
                 //offspring.getRoutes()[targetOffspringRouteIndex].addCustomer(customer);
             } 
         }
         else {
             // Insert route in offspring
             offspring.getRoutes()[routeIndex].setCustomers(routeInB.getCustomers());
+            insertedCustomers.insert(insertedCustomers.end(), routeInB.getCustomers().begin(), routeInB.getCustomers().end());
         }
     }
 

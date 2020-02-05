@@ -11,7 +11,6 @@ using namespace std;
 
 class Route { 
     private:
-        MDVRP& problem;
         Depot& depot;
         vector<int> customers;
 
@@ -22,6 +21,8 @@ class Route {
         float totalDemand;
     public: 
         Route(MDVRP& problem, Depot& dep);
+
+        MDVRP& problem;
 
         bool canAddCustomer(int customerNumber);
         bool canInsertCustomer(int customerNumber, int position); 

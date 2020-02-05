@@ -10,6 +10,7 @@
 #include <random>
 #include <thread>
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -312,17 +313,18 @@ void MDVRPGeneticAlgorithm::printState() {
 }
 
 void MDVRPGeneticAlgorithm::outputFile(){
-	bestInd = population.getFittestIndividual();
+	Individual bestInd = population.getFittestIndividual();
 	ofstream f;
-	f.open("../../Solution_Files/"+filePb/*=inputProblem*/+".res");
-	f << bestInd.getTotalDistance()+"\n";
+	string path = "../../Solution_Files/";
+	string extension = ".res";
+	f.open(path+/*=inputProblem +*/extension);
+	f << std::to_string(bestInd.getTotalDistance())+"\n"; //first line of the output
 	for (int i = 0; i < bestInd.getRoutes().size(); ++i){
-		f << bestInd.getRoutes()[i].getDepots()+"\t" + /*numero voiture dans son depot*/i +"\t" + bestInd.getRoutes()[i].getTotalDistance()+"\t" +bestInd.getRoutes()[i].getTotalDemand()+"\t"+bestInd.getRoutes()[i].getDepots()+"\t";
-		for (int j = 0; j < bestInd.getRoutes()[i].size(); ++i)
-		{
-			f << bestInd.getRoutes()[i][j] + " ";
+		f << std::to_string(bestInd.getRoutes()[i].getDepot().getNumber())+"\t" + /*numero voiture dans son depot +*/"\t" + std::to_string(bestInd.getRoutes()[i].getTotalDistance())+"\t" + std::to_string(bestInd.getRoutes()[i].getTotalDemand())+"\t"+ std::to_string(bestInd.getRoutes()[i].getDepot().getNumber())+"\t";
+		for (int j = 0; j < bestInd.getRoutes()[i].getCustomers().size(); ++j){
+			f << std::to_string(bestInd.getRoutes()[i].getCustomers()[j]) + " ";
 		}
 		f << "\n";
 	}
-	f.close()
+	f.close();
 }

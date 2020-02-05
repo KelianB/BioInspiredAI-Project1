@@ -29,7 +29,7 @@ MDVRP::MDVRP(const char filePath[]) {
     fileStream.open(filePath);
     
     if(fileStream.is_open()) {
-        std::cout << "Parsing file " << filePath << "...";
+        std::cout << "Parsing file " << filePath << "...\n";
 
         int numCustomers, numDepots;
         int lineIndex = 0;
@@ -55,7 +55,7 @@ MDVRP::MDVRP(const char filePath[]) {
             else if(lineIndex <= numDepots + numCustomers + numDepots)
                 depots[lineIndex - numDepots - numCustomers - 1].setPosition(numbers[1], numbers[2]);
             else {
-                cout << "\nToo many lines in input problem data.";
+                cout << "Too many lines in input problem data.";
             }
             lineIndex++;
         }
@@ -82,15 +82,10 @@ Depot& MDVRP::getDepotByNumber(int number) {
 }
 
 Customer& MDVRP::getClosestCustomer(Customer c, vector<int> customerNumbers) {
-    if(customerNumbers.size() == 0) {
-        cout << "\n[Error] Cannot get closest customer in empty list!";
-        return getCustomerByNumber(-1); // forces an error 
-    }
+    float smallestDistance = 999999999;
+    int minNumber;
 
-    int minNumber = customerNumbers[0];
-    float smallestDistance = getDistance(c, getCustomerByNumber(minNumber));
-
-    for(int i = 1; i < customerNumbers.size(); i++) {
+    for(int i = 0; i < customerNumbers.size(); i++) {
         int customerNumber = customerNumbers[i];
         float distance = getDistance(c, getCustomerByNumber(customerNumber)); 
         if(distance < smallestDistance) {
@@ -102,10 +97,10 @@ Customer& MDVRP::getClosestCustomer(Customer c, vector<int> customerNumbers) {
 }
 
 Depot& MDVRP::getClosestDepot(Customer c) {
-    int minNumber = depots[0].getNumber();
-    float smallestDistance = getDistance(c, depots[0]);
+    float smallestDistance = 999999999;
+    int minNumber;
 
-    for(int i = 1; i < depots.size(); i++) {
+    for(int i = 0; i < depots.size(); i++) {
         float distance = getDistance(c, depots[i]); 
         if(distance < smallestDistance) {
             smallestDistance = distance;

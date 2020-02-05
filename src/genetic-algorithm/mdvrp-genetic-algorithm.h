@@ -13,6 +13,7 @@ class MDVRPGeneticAlgorithm {
         const double MUTATION_RATE = 0.8;
         const double CROSSOVER_RATE = 0;
 
+        bool printProgress;
         MDVRP& problem;
         Population population;
 
@@ -23,11 +24,14 @@ class MDVRPGeneticAlgorithm {
         void insertOffspring();
         void mutate(vector<Individual>& individuals, float mutationRate);
     public:
-        MDVRPGeneticAlgorithm(MDVRP& pb);
+        MDVRPGeneticAlgorithm(MDVRP& pb, bool printProgress);
 
-        void buildInitialPopulation(int populationSize);
-        void solve();
+
+        void buildInitialPopulation();
+        void runGenerations(int num);
+        void printState();
         void outputFile();
+
 };
 
 #endif

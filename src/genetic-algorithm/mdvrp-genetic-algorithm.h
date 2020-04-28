@@ -9,8 +9,8 @@ class MDVRPGeneticAlgorithm {
         /** ##### Hyperparameters ##### */ 
         const int POPULATION_SIZE = 50;
         const int NUMBER_OF_ELITES = 5;
-        const double MUTATION_RATE = 0.35;
-        const double CROSSOVER_RATE = 0.10;
+        const double MUTATION_RATE = 0.4;
+        const double CROSSOVER_RATE = 0.1;
         const int TERMINATION_FITNESS_STEPS = 5;
 
         bool printProgress;

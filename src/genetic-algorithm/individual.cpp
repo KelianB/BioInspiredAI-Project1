@@ -34,7 +34,7 @@ float Individual::getFitness() {
                 dist += 100 * distanceOverflow;
         }
         this->shouldUpdateFitness = false;
-        this->fitness = 1 / pow(dist, 2);
+        this->fitness = 1 / pow(dist, 3);
     }
 
     return this->fitness;
@@ -164,7 +164,7 @@ void Individual::mutationInversion() {
                 cout << route.getCustomers()[i] << ",";
         }
 
-        // TODO Check if possible
+        // No legal check?
         route.reverseCustomers(startIndex, endIndex);
         
         if(debug) {
@@ -347,7 +347,7 @@ Individual crossoverAux(Individual& parentA, Individual& parentB, int sequenceSi
     Individual offspring(parentB.getRoutes());
     
     vector<int> routeIndicesDone;
-    int numberOfReorders = 3 + rd::gen(6);
+    int numberOfReorders = 2 + rd::gen(5);
 
     for(int k = 0; k < numberOfReorders; k++) {
         // Get a sequence of customers of size sequenceSize from any route of parentA that is big enough

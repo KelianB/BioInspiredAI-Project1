@@ -58,7 +58,7 @@ Individual MDVRPGeneticAlgorithm::createIndividual(vector<int> customerNumbers) 
             int neighbourNum = neighbours[neighbourIdx];
 
             // If customer is closer to its closest depot than to this neighbour, 
-            // have a random chance to try assigning it to an empty route of the depot
+            // try assigning it to an empty route of the depot
             if(problem.getDistance(customer, closestDepot) < problem.getDistance(customer, problem.getCustomerByNumber(neighbourNum))) {
                 int firstRouteOfDepot = (closestDepot.getNumber()-1) * problem.getVehiclesPerDepot();
                 int j = 0;
